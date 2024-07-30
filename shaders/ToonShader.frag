@@ -16,29 +16,6 @@ layout(binding = 2) uniform GlobalUniformBufferObject {
 } gubo;
 
 vec3 BRDF(vec3 V, vec3 N, vec3 L, vec3 Md, vec3 Ms) {
-/* This BRDF should perform toon shading with the following charcteristics:
-Lets call cos(alpha) the cosine of the angle between the normal vector and the light vector,
-and cos(beta) the cosine of the angle between the specular reflection vector and the viewer direction.
-The toon will return the sum of a pecentage of the diffuse and a percentage of the specular colors,
-according to the following proportions:
-
-Diffuse -   0% if cos(alpha) is zero or negative
-        -   gradient between 0% and 15% if 0 < cos(alpha) <= 0.1
-		-  15% if 0.1 < cos(alpha) <= 0.7
-		-   gradient between 15% and 100% if 0.7 < cos(alpha) <= 0.8
-		- 100% if cos(alpha) > 0.8
-
-Specular -   0% if cos(beta) <= 0.9
-		 -   gradient between 0% and 100% if 0.9 < cos(alpha) <= 0.95
-		 - 100% if cos(beta > 0.95)
-		 
-Paramters:
-	V	- Viewer direction
-	N	- Normal vector direction
-	L	- Light direction
-	Md	- Diffuse color
-	Ms	- Specular color
-*/
 
 	vec3 Diffuse = Md * clamp(dot(N, L),0.0,1.0);
 

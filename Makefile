@@ -14,4 +14,5 @@ shaders:
 	/usr/bin/glslc shaders/ToonShader.frag -o shaders/ToonFrag.spv
 	/usr/bin/glslc shaders/TextShader.vert -o shaders/TextVert.spv
 	/usr/bin/glslc shaders/TextShader.frag -o shaders/TextFrag.spv
+	/usr/bin/glslc shaders/BWShader.frag -o shaders/BWFrag.spv
 

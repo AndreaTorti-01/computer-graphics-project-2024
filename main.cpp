@@ -39,13 +39,13 @@ class A08 : public BaseProject {
 	protected:
 	
 	// Descriptor Layouts ["classes" of what will be passed to the shaders]
-	DescriptorSetLayout DSLToon;
+	DescriptorSetLayout DSLToon, DSLBW;
 
 	// Vertex formats
 	VertexDescriptor VD;
 
 	// Pipelines [Shader couples]
-	Pipeline PToon;
+	Pipeline PToon, PBW;
 
 	// Scenes and texts
 	Scene SC;
@@ -90,6 +90,12 @@ class A08 : public BaseProject {
 					{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(GlobalUniformBufferObject)}
 				});
 
+		DSLBW.init(this, {
+					{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(UniformBufferObject)},
+					{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0},
+					{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(GlobalUniformBufferObject)}
+				});
+
 		// Vertex descriptors
 		VD.init(this, {
 				  {0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX}
@@ -107,9 +113,11 @@ class A08 : public BaseProject {
 
 		// Pipelines [Shader couples]
 		PToon.init( this, &VD,  "shaders/Vert.spv",    "shaders/ToonFrag.spv",  {&DSLToon});
+    PBW.init( this, &VD, "shaders/Vert.spv",      "shaders/BWFrag.spv", {&DSLBW});
 
-		PRs.resize(1);
+		PRs.resize(2);
 		PRs[0].init("PToon",  &PToon,  &VD);
+    PRs[1].init("PBW", &PBW, &VD);
 
 		// Descriptor pool sizes
 		// WARNING!!!!!!!!
@@ -137,6 +145,7 @@ std::cout << "Initializing text\n";
 	void pipelinesAndDescriptorSetsInit() {
 		// This creates a new pipeline (with the current surface), using its shaders
 		PToon.create();
+    PBW.create();
 
 		// Here you define the data set
 		SC.pipelinesAndDescriptorSetsInit();
@@ -148,6 +157,7 @@ std::cout << "Initializing text\n";
 	void pipelinesAndDescriptorSetsCleanup() {
 		// Cleanup pipelines
 		PToon.cleanup();
+    PBW.cleanup();
 
 		SC.pipelinesAndDescriptorSetsCleanup();
 		txt.pipelinesAndDescriptorSetsCleanup();
@@ -161,9 +171,11 @@ std::cout << "Initializing text\n";
 		
 		// Cleanup descriptor set layouts
 		DSLToon.cleanup();
-		
+		DSLBW.cleanup();
+    
 		// Destroies the pipelines
 		PToon.destroy();
+    PBW.destroy();
 
 		SC.localCleanup();		
 		txt.localCleanup();		
