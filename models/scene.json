@@ -1,0 +1,36 @@
+{
+	"models": [
+		{"id": "ax",  "VD": "VD",   "model": "models/axis.obj",       "format":"OBJ"},
+		{"id": "pl",  "VD": "VD",   "model": "models/LargePlane.obj", "format":"OBJ"},
+		{"id": "an",  "VD": "VD",   "model": "models/mike.obj",       "format":"OBJ"},
+		{"id": "ct",  "VD": "VD",   "model": "models/Cat.mgcg",       "format":"MGCG"}
+	],
+	"textures": [
+		{"id": "tc",    "texture": "textures/Textures.png",		"format": "C"},
+		{"id": "an",    "texture": "textures/T_Zebra.png",		"format": "C"}
+	],
+	"instances": [
+		{"pipeline": "PToon", "elements": [
+			{"id": "ax",   "model": "ax",   "texture": ["tc"],
+			 "transform": [1, 0, 0, 0,
+						   0, 1, 0, 0,
+						   0, 0, 1, 0,
+						   0, 0, 0, 1]},
+			{"id": "pl",   "model": "pl",   "texture": ["tc"],
+			 "transform": [1, 0, 0, 0,
+						   0, 1, 0, -0.1,
+						   0, 0, 1, 0,
+						   0, 0, 0, 1]},
+			{"id": "an",  "model": "an",    "texture": ["an"],
+			 "transform": [3, 0, 0, -2.5,
+						   0, 3, 0, 0,
+						   0, 0, 3, 0,
+						   0, 0, 0, 1]},
+			{"id": "ct",  "model": "ct",    "texture": ["tc"],
+			 "transform": [-3, 0, 0, 2.5,
+						   0, -3, 0, 0,
+						   0, 0, 3, 0,
+						   0, 0, 0, 1]}
+		]}
+	]
+}
