@@ -23,9 +23,9 @@ vec3 BRDF(vec3 V, vec3 N, vec3 L, vec3 Md, vec3 Ms) {
 
   if (index <= 0.0) Diffuse = vec3(0.0);
   else if (index > 0   && index <= 0.1) Diffuse = vec3(0.05);
-  else if (index > 0.1 && index <= 0.7) Diffuse = vec3(0.4);
-  else if (index > 0.7 && index <= 0.8) Diffuse = vec3(0.6);
-  else Diffuse = vec3(0.8);
+  else if (index > 0.1 && index <= 0.7) Diffuse = vec3(0.1);
+  else if (index > 0.7 && index <= 0.8) Diffuse = vec3(0.2);
+  else Diffuse = vec3(0.35);
 
 	return (Diffuse);
 }
@@ -39,5 +39,5 @@ void main() {
 
 	vec3 DiffSpec = BRDF(EyeDir, Norm, L, Albedo, vec3(1.0f));
 
-	outColor = vec4(DiffSpec * vec3(1.0), 1.0f);
+	outColor = vec4(DiffSpec * (lightColor[0] * 0.3 + lightColor[1] * 0.8 + lightColor[2] * 0.5) * vec3(1.0), 1.0f);
 }

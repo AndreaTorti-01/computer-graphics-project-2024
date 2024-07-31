@@ -7,7 +7,6 @@ LDFLAGS = -lglfw -lvulkan -ldl -lpthread -lX11  -lXrandr
 
 $(SRC_NAME): $(SRC_NAME).cpp $(ADD_FILES) shaders
 	g++ $(CFLAGS) -o $(SRC_NAME) $(SRC_NAME).cpp $(LDFLAGS)
-	./$(SRC_NAME)
 
 shaders:
 	/usr/bin/glslc shaders/Shader.vert -o shaders/Vert.spv

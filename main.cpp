@@ -37,6 +37,10 @@ struct Vertex {
 // MAIN ! 
 class A08 : public BaseProject {
 	protected:
+
+	glm::vec3 lastTime = glm::vec3(0.0f);
+	glm::vec3 last_pressed = glm::vec3(0.0f);
+	glm::vec3 curr_speed = glm::vec3(0.0f);
 	
 	// Descriptor Layouts ["classes" of what will be passed to the shaders]
 	DescriptorSetLayout DSLToon, DSLBW;
@@ -61,6 +65,7 @@ class A08 : public BaseProject {
 	float CamAlpha = 0.0f;
 	float CamBeta = 0.0f;
 	float Ar;
+
 	
 	// Here you set the main application parameters
 	void setWindowParameters() {
@@ -171,8 +176,7 @@ std::cout << "Initializing text\n";
 		
 		// Cleanup descriptor set layouts
 		DSLToon.cleanup();
-		DSLBW.cleanup();
-    
+		
 		// Destroies the pipelines
 		PToon.destroy();
     PBW.destroy();
@@ -207,7 +211,18 @@ std::cout << "Initializing text\n";
 		static float cTime = 0.0;
 		const float turnTime = 36.0f;
 		const float angTurnTimeFact = 2.0f * M_PI / turnTime;
+
+		//ACCELLERATION LOGIC
 		
+		static auto startTime = std::chrono::high_resolution_clock::now();
+		auto currentTime = std::chrono::high_resolution_clock::now();
+		glm::vec3 deltaLp = glm::vec3(0.0f);
+
+		float time = std::chrono::duration<float, std::chrono::seconds::period>
+					(currentTime - startTime).count();
+		
+		
+
 		if(autoTime) {
 			cTime = cTime + deltaT;
 			cTime = (cTime > turnTime) ? (cTime - turnTime) : cTime;
@@ -215,7 +230,23 @@ std::cout << "Initializing text\n";
 		cTime += r.z * angTurnTimeFact * 4.0;
 		
 		const float ROT_SPEED = glm::radians(120.0f);
-		const float MOVE_SPEED = 2.0f;
+		const float ACCELLERATION = 4;
+		
+
+		if(last_pressed[0] != m.x) lastTime[0] = time;
+		//if(last_pressed[1] != m.y) lastTime[1] = time;
+		if(last_pressed[2] != m.z) lastTime[2] = time;
+		deltaLp = glm::vec3(time) - lastTime + glm::vec3(0.1);
+
+		curr_speed[0] += ACCELLERATION * deltaLp[0] * deltaLp[0] * m.x;
+		//curr_speed[1] += ACCELLERATION * deltaLp[1] * deltaLp[1] * m.y;
+		curr_speed[1] = m.y;
+		curr_speed[2] += ACCELLERATION * deltaLp[2] * deltaLp[2] * m.z;
+
+		for(int i = 0; i<3; i++) if(curr_speed[i] > 15.0) curr_speed[i] = 8.0;
+
+		//END ACCELLERATION LOGIC
+
 		
 		CamAlpha = CamAlpha - ROT_SPEED * deltaT * r.y;
 		CamBeta  = CamBeta  - ROT_SPEED * deltaT * r.x;
@@ -224,10 +255,10 @@ std::cout << "Initializing text\n";
 
 		glm::vec3 ux = glm::rotate(glm::mat4(1.0f), CamAlpha, glm::vec3(0,1,0)) * glm::vec4(1,0,0,1);
 		glm::vec3 uz = glm::rotate(glm::mat4(1.0f), CamAlpha, glm::vec3(0,1,0)) * glm::vec4(0,0,1,1);
-		CamPos = CamPos + MOVE_SPEED * m.x * ux * deltaT;
-		CamPos = CamPos + MOVE_SPEED * m.y * glm::vec3(0,1,0) * deltaT;
-		CamPos = CamPos + MOVE_SPEED * m.z * uz * deltaT;
-		
+		CamPos = CamPos + curr_speed[0] * ux * deltaT;
+		CamPos = CamPos + curr_speed[1] * glm::vec3(0,1,0) * deltaT;
+		CamPos = CamPos + curr_speed[2] * uz * deltaT;
+
 		static float subpassTimer = 0.0;
 
 		if(glfwGetKey(window, GLFW_KEY_SPACE)) {
