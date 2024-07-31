@@ -2,19 +2,22 @@
 
 #include "modules/Starter.hpp"
 #include "modules/TextMaker.hpp"
-#include "modules/Scene.hpp"
 
 
 std::vector<SingleText> outText = {
-	{2, {"BRDF", "Press SPACE to save the screenshots","",""}, 0, 0},
+	{2, {"Adding an object", "Press SPACE to save the screenshots","",""}, 0, 0},
 	{1, {"Saving Screenshots. Please wait.", "", "",""}, 0, 0}
 };
 
 // The uniform buffer object used in this example
-struct UniformBufferObject {
+struct ToonUniformBufferObject {
 	alignas(16) glm::mat4 mvpMat;
 	alignas(16) glm::mat4 mMat;
 	alignas(16) glm::mat4 nMat;
+};
+
+struct SkyBoxUniformBufferObject {
+	alignas(16) glm::mat4 mvpMat;
 };
 
 struct GlobalUniformBufferObject {
@@ -27,35 +30,38 @@ struct GlobalUniformBufferObject {
 
 // The vertices data structures
 // Example
-struct Vertex {
+struct ToonVertex {
 	glm::vec3 pos;
-	glm::vec2 UV;
 	glm::vec3 norm;
+	glm::vec2 UV;
+};
+
+struct SkyBoxVertex {
+	glm::vec3 pos;
 };
 
 
 // MAIN ! 
-class A08 : public BaseProject {
+class Application : public BaseProject {
 	protected:
-
-	glm::vec3 lastTime = glm::vec3(0.0f);
-	glm::vec3 last_pressed = glm::vec3(0.0f);
-	glm::vec3 curr_speed = glm::vec3(0.0f);
 	
 	// Descriptor Layouts ["classes" of what will be passed to the shaders]
-	DescriptorSetLayout DSLToon, DSLBW;
-
-	// Vertex formats
-	VertexDescriptor VD;
+	DescriptorSetLayout DSLGlobal, DSLSkyBox, DSLToon, DSLBW;	// For Global values
+	
+  // Vertex formats
+	VertexDescriptor VDToon, VDSkyBox;
 
 	// Pipelines [Shader couples]
-	Pipeline PToon, PBW;
+	Pipeline PToon, PBW, PSkyBox;
 
 	// Scenes and texts
-	Scene SC;
-	std::vector<VertexDescriptorRef>  VDRs;
-	std::vector<PipelineRef> PRs;
   TextMaker txt;
+
+	// Models, textures and Descriptor Sets (values assigned to the uniforms)
+  Model MCar, MMike, MSkyBox, TFloor;
+  Texture TGeneric, TMike, TSkyBox;
+
+  DescriptorSet DSGlobal, DSCar, DSMike, DSSkyBox, DSFloor;
 	
 	// Other application parameters
 	int currScene = 0;
@@ -65,14 +71,13 @@ class A08 : public BaseProject {
 	float CamAlpha = 0.0f;
 	float CamBeta = 0.0f;
 	float Ar;
-
 	
 	// Here you set the main application parameters
 	void setWindowParameters() {
 		// window size, titile and initial background
 		windowWidth = 800;
 		windowHeight = 600;
-		windowTitle = "PROJECT";
+		windowTitle = "CG";
     	windowResizable = GLFW_TRUE;
 		initialBackgroundColor = {0.1f, 0.1f, 0.1f, 1.0f};
 		
@@ -89,40 +94,66 @@ class A08 : public BaseProject {
 	// Here you also create your Descriptor set layouts and load the shaders for the pipelines
 	void localInit() {
 		// Descriptor Layouts [what will be passed to the shaders]
-		DSLToon.init(this, {
-					{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(UniformBufferObject)},
-					{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0},
-					{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(GlobalUniformBufferObject)}
+		DSLGlobal.init(this, {
+					{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(GlobalUniformBufferObject), 1}
+				});
+
+    DSLToon.init(this, {
+					{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(ToonUniformBufferObject), 1},
+					{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1},
+					{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(GlobalUniformBufferObject), 1}
 				});
 
 		DSLBW.init(this, {
-					{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(UniformBufferObject)},
-					{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0},
-					{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(GlobalUniformBufferObject)}
+					{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(ToonUniformBufferObject), 1},
+					{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1},
+					{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(GlobalUniformBufferObject), 1}
 				});
 
+		DSLSkyBox.init(this, {
+					{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, sizeof(SkyBoxUniformBufferObject), 1},
+					{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1},
+					{2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 1, 1}
+				  });
+
+
 		// Vertex descriptors
-		VD.init(this, {
-				  {0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX}
+    //
+		VDToon.init(this, {
+				  {0, sizeof(ToonVertex), VK_VERTEX_INPUT_RATE_VERTEX}
 				}, {
-				  {0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, pos),
+				  {0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(ToonVertex, pos),
 				         sizeof(glm::vec3), POSITION},
-				  {0, 1, VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, UV),
+				  {0, 1, VK_FORMAT_R32G32_SFLOAT, offsetof(ToonVertex, UV),
 				         sizeof(glm::vec2), UV},
-				  {0, 2, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, norm),
+				  {0, 2, VK_FORMAT_R32G32B32_SFLOAT, offsetof(ToonVertex, norm),
 				         sizeof(glm::vec3), NORMAL}
 				});
 
-		VDRs.resize(1);
-		VDRs[0].init("VD",  &VD);
+		VDSkyBox.init(this, {
+				  {0, sizeof(SkyBoxVertex), VK_VERTEX_INPUT_RATE_VERTEX}
+				}, {
+				  {0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(SkyBoxVertex, pos),
+				         sizeof(glm::vec3), POSITION}
+				});
 
 		// Pipelines [Shader couples]
-		PToon.init( this, &VD,  "shaders/Vert.spv",    "shaders/ToonFrag.spv",  {&DSLToon});
-    PBW.init( this, &VD, "shaders/Vert.spv",      "shaders/BWFrag.spv", {&DSLBW});
+    PToon.init(this, &VDToon,  "shaders/Vert.spv",    "shaders/ToonFrag.spv",  {&DSLToon});
+    PBW.init(this, &VDToon, "shaders/Vert.spv",      "shaders/BWFrag.spv", {&DSLBW});
+		PSkyBox.init(this, &VDSkyBox, "shaders/SkyBoxVert.spv", "shaders/SkyBoxFrag.spv", {&DSLSkyBox});
+		PSkyBox.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, false);
 
-		PRs.resize(2);
-		PRs[0].init("PToon",  &PToon,  &VD);
-    PRs[1].init("PBW", &PBW, &VD);
+		// Create Models
+    MCar.init(this, &VDToon, "models/Car.mgcg", MGCG);
+    MMike.init(this, &VDToon, "models/Mike.obj", OBJ);
+    MSkyBox.init(this, &VDToon, "models/SkyBox.obj", OBJ);
+		
+		// Create the textures
+    
+		TGeneric.init(this, "textures/Textures.png");
+		TMike.init(this, "textures/T_Zebra.png");
+		TSkyBox.init(this, "textures/T_SkyBox.jpg");
+
 
 		// Descriptor pool sizes
 		// WARNING!!!!!!!!
@@ -131,12 +162,7 @@ class A08 : public BaseProject {
 		DPSZs.texturesInPool = 10;
 		DPSZs.setsInPool = 10;
 
-std::cout << "Loading the scene\n";
-		if(SC.init(this, VDRs, PRs, "models/scene.json") != 0) {
-			std::cout << "ERROR LOADING THE SCENE\n";
-			exit(0);
-		}
-		
+	
 std::cout << "Initializing text\n";
 		txt.init(this, &outText);
 
@@ -149,11 +175,17 @@ std::cout << "Initializing text\n";
 	// Here you create your pipelines and Descriptor Sets!
 	void pipelinesAndDescriptorSetsInit() {
 		// This creates a new pipeline (with the current surface), using its shaders
-		PToon.create();
-    PBW.create();
+		PBW.create();
+    PToon.create();
+    PSkyBox.create();
 
 		// Here you define the data set
-		SC.pipelinesAndDescriptorSetsInit();
+    DSCar.init(this, &DSLToon, {&TGeneric});
+		DSMike.init(this, &DSLBW, {&TMike});
+
+		DSSkyBox.init(this, &DSLSkyBox, {&TSkyBox});
+		DSGlobal.init(this, &DSLGlobal, {});
+
 		txt.pipelinesAndDescriptorSetsInit();		
 	}
 
@@ -162,9 +194,14 @@ std::cout << "Initializing text\n";
 	void pipelinesAndDescriptorSetsCleanup() {
 		// Cleanup pipelines
 		PToon.cleanup();
-    PBW.cleanup();
+		PSkyBox.cleanup();
+		PBW.cleanup();
 
-		SC.pipelinesAndDescriptorSetsCleanup();
+		DSCar.cleanup();
+		DSMike.cleanup();
+    DSSkyBox.cleanup();
+		DSGlobal.cleanup();
+
 		txt.pipelinesAndDescriptorSetsCleanup();
 	}
 
@@ -173,15 +210,25 @@ std::cout << "Initializing text\n";
 	// You also have to destroy the pipelines: since they need to be rebuilt, they have two different
 	// methods: .cleanup() recreates them, while .destroy() delete them completely
 	void localCleanup() {	
-		
+		TGeneric.cleanup();
+    TMike.cleanup();
+    TSkyBox.cleanup();
+
+    MCar.cleanup();
+    MMike.cleanup();
+		MSkyBox.cleanup();
+
 		// Cleanup descriptor set layouts
 		DSLToon.cleanup();
+		DSLBW.cleanup();
+    DSLSkyBox.cleanup();
+		DSLGlobal.cleanup();
 		
 		// Destroies the pipelines
 		PToon.destroy();
-    PBW.destroy();
+		PBW.destroy();
+    PSkyBox.destroy();
 
-		SC.localCleanup();		
 		txt.localCleanup();		
 	}
 	
@@ -190,8 +237,30 @@ std::cout << "Initializing text\n";
 	// with their buffers and textures
 	
 	void populateCommandBuffer(VkCommandBuffer commandBuffer, int currentImage) {
+    std::cout << "gay";
 		// binds the pipeline
-		SC.populateCommandBuffer(commandBuffer, currentImage);
+		PToon.bind(commandBuffer);
+		MCar.bind(commandBuffer);
+		DSGlobal.bind(commandBuffer, PToon, 0, currentImage);	// The Global Descriptor Set (Set 0)
+		DSCar.bind(commandBuffer, PToon, 1, currentImage);	// The Material and Position Descriptor Set (Set 1)
+                                                        
+		vkCmdDrawIndexed(commandBuffer,
+				static_cast<uint32_t>(MCar.indices.size()), 1, 0, 0, 0);	
+                                                        
+    PBW.bind(commandBuffer);
+		MMike.bind(commandBuffer);
+		DSGlobal.bind(commandBuffer, PBW, 0, currentImage);	// The Global Descriptor Set (Set 0)
+		DSMike.bind(commandBuffer, PBW, 1, currentImage);	// The Material and Position Descriptor Set (Set 1)
+
+		vkCmdDrawIndexed(commandBuffer,
+				static_cast<uint32_t>(MMike.indices.size()), 1, 0, 0, 0);
+
+		PSkyBox.bind(commandBuffer);
+    MSkyBox.bind(commandBuffer);
+		DSMike.bind(commandBuffer, PBW, 2, currentImage);
+
+		vkCmdDrawIndexed(commandBuffer,
+				static_cast<uint32_t>(MSkyBox.indices.size()), 1, 0, 0, 0);	
 
 		txt.populateCommandBuffer(commandBuffer, currentImage, currScene);
 	}
@@ -211,18 +280,7 @@ std::cout << "Initializing text\n";
 		static float cTime = 0.0;
 		const float turnTime = 36.0f;
 		const float angTurnTimeFact = 2.0f * M_PI / turnTime;
-
-		//ACCELLERATION LOGIC
 		
-		static auto startTime = std::chrono::high_resolution_clock::now();
-		auto currentTime = std::chrono::high_resolution_clock::now();
-		glm::vec3 deltaLp = glm::vec3(0.0f);
-
-		float time = std::chrono::duration<float, std::chrono::seconds::period>
-					(currentTime - startTime).count();
-		
-		
-
 		if(autoTime) {
 			cTime = cTime + deltaT;
 			cTime = (cTime > turnTime) ? (cTime - turnTime) : cTime;
@@ -230,23 +288,7 @@ std::cout << "Initializing text\n";
 		cTime += r.z * angTurnTimeFact * 4.0;
 		
 		const float ROT_SPEED = glm::radians(120.0f);
-		const float ACCELLERATION = 4;
-		
-
-		if(last_pressed[0] != m.x) lastTime[0] = time;
-		//if(last_pressed[1] != m.y) lastTime[1] = time;
-		if(last_pressed[2] != m.z) lastTime[2] = time;
-		deltaLp = glm::vec3(time) - lastTime + glm::vec3(0.1);
-
-		curr_speed[0] += ACCELLERATION * deltaLp[0] * deltaLp[0] * m.x;
-		//curr_speed[1] += ACCELLERATION * deltaLp[1] * deltaLp[1] * m.y;
-		curr_speed[1] = m.y;
-		curr_speed[2] += ACCELLERATION * deltaLp[2] * deltaLp[2] * m.z;
-
-		for(int i = 0; i<3; i++) if(curr_speed[i] > 15.0) curr_speed[i] = 8.0;
-
-		//END ACCELLERATION LOGIC
-
+		const float MOVE_SPEED = 2.0f;
 		
 		CamAlpha = CamAlpha - ROT_SPEED * deltaT * r.y;
 		CamBeta  = CamBeta  - ROT_SPEED * deltaT * r.x;
@@ -255,10 +297,10 @@ std::cout << "Initializing text\n";
 
 		glm::vec3 ux = glm::rotate(glm::mat4(1.0f), CamAlpha, glm::vec3(0,1,0)) * glm::vec4(1,0,0,1);
 		glm::vec3 uz = glm::rotate(glm::mat4(1.0f), CamAlpha, glm::vec3(0,1,0)) * glm::vec4(0,0,1,1);
-		CamPos = CamPos + curr_speed[0] * ux * deltaT;
-		CamPos = CamPos + curr_speed[1] * glm::vec3(0,1,0) * deltaT;
-		CamPos = CamPos + curr_speed[2] * uz * deltaT;
-
+		CamPos = CamPos + MOVE_SPEED * m.x * ux * deltaT;
+		CamPos = CamPos + MOVE_SPEED * m.y * glm::vec3(0,1,0) * deltaT;
+		CamPos = CamPos + MOVE_SPEED * m.z * uz * deltaT;
+		
 		static float subpassTimer = 0.0;
 
 		if(glfwGetKey(window, GLFW_KEY_SPACE)) {
@@ -308,22 +350,8 @@ std::cout << "Initializing text\n";
 			}
 		}
 
-		if(glfwGetKey(window, GLFW_KEY_M)) {
-			if(!debounce) {
-				debounce = true;
-				curDebounce = GLFW_KEY_M;
-
-				autoTime = !autoTime;
-			}
-		} else {
-			if((curDebounce == GLFW_KEY_M) && debounce) {
-				debounce = false;
-				curDebounce = 0;
-			}
-		}
-
-		
-		if(currScene == 1) {
+	
+/*		if(currScene == 1) {
 			switch(subpass) {
 			  case 0:
 CamPos   = glm::vec3(0.0644703, 6.442, 8.83251);
@@ -372,41 +400,16 @@ autoTime = true;
 					RebuildPipeline();
 				}
 			}
-		}
+		}*/
 
 
 		// Here is where you actually update your uniforms
-		glm::mat4 M = glm::perspective(glm::radians(45.0f), Ar, 0.1f, 50.0f);
-		M[1][1] *= -1;
-
-		glm::mat4 Mv =  glm::rotate(glm::mat4(1.0), -CamBeta, glm::vec3(1,0,0)) *
-						glm::rotate(glm::mat4(1.0), -CamAlpha, glm::vec3(0,1,0)) *
-						glm::translate(glm::mat4(1.0), -CamPos);
-
-		glm::mat4 ViewPrj =  M * Mv;
-		UniformBufferObject ubo{};
-		glm::mat4 baseTr = glm::mat4(1.0f);								
-
-		// updates global uniforms
-		GlobalUniformBufferObject gubo{};
-		gubo.lightDir = glm::vec3(cos(glm::radians(135.0f)) * cos(cTime * angTurnTimeFact), sin(glm::radians(135.0f)), cos(glm::radians(135.0f)) * sin(cTime * angTurnTimeFact));
-		gubo.lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-		gubo.eyePos = CamPos;
-		
-		for(int i = 0; i < SC.InstanceCount; i++) {
-			ubo.mMat = baseTr * SC.M[SC.I[i]->Mid]->Wm * SC.I[i]->Wm;
-			ubo.mvpMat = ViewPrj * ubo.mMat;
-			ubo.nMat = glm::inverse(glm::transpose(ubo.mMat));
-
-			SC.I[i]->DS[0]->map(currentImage, &ubo, sizeof(ubo), 0);
-			SC.I[i]->DS[0]->map(currentImage, &gubo, sizeof(gubo), 2);
-		}
 	}
 };
 
 // This is the main: probably you do not need to touch this!
 int main() {
-    A08 app;
+    Application app;
 
     try {
         app.run();

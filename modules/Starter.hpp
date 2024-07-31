@@ -277,6 +277,7 @@ struct DescriptorSetLayoutBinding {
 	VkDescriptorType type;
 	VkShaderStageFlags flags;
 	int linkSize;
+	int count;
 };
 
 
@@ -284,6 +285,7 @@ struct DescriptorSetLayout {
 	BaseProject *BP;
  	VkDescriptorSetLayout descriptorSetLayout;
 	std::vector<DescriptorSetLayoutBinding> Bindings;
+	int imgInfoSize;
  	
  	void init(BaseProject *bp, std::vector<DescriptorSetLayoutBinding> B);
 	void cleanup();
@@ -324,14 +326,15 @@ struct DescriptorSet {
 	std::vector<std::vector<VkBuffer>> uniformBuffers;
 	std::vector<std::vector<VkDeviceMemory>> uniformBuffersMemory;
 	std::vector<VkDescriptorSet> descriptorSets;
+	DescriptorSetLayout *Layout;
 	
 	std::vector<bool> toFree;
 
 	void init(BaseProject *bp, DescriptorSetLayout *L,
-						 Texture **Txs);
+						 std::vector<Texture *>Txs);
 	void cleanup();
   	void bind(VkCommandBuffer commandBuffer, Pipeline &P, int setId, int currentImage);
-  	void map(int currentImage, void *src, int size, int slot);
+  	void map(int currentImage, void *src, int slot);
 };
 
 
@@ -1810,7 +1813,11 @@ std::cout << "Starting createInstance()\n"  << std::flush;
 		}
 	}
 		
-	void getSixAxis(float &deltaT, glm::vec3 &m, glm::vec3 &r, bool &fire) {
+	void getSixAxis(float &deltaT,
+					glm::vec3 &m,
+					glm::vec3 &r,
+					bool &fire) {
+						
 		static auto startTime = std::chrono::high_resolution_clock::now();
 		static float lastTime = 0.0f;
 		
@@ -1911,7 +1918,7 @@ std::cout << "Starting createInstance()\n"  << std::flush;
 	}
 
 	// to support screenshot
-	// Taken from the Sasha Willem sample by copy&past
+	// Taken from the Sasha Willem sample by copy&paste
 	// This could be better integrated in the code, but for the moment,
 	// i cannot afford to do it, so it stays like this, even if it is awful!	
 	private:
@@ -3032,8 +3039,10 @@ void Pipeline::init(BaseProject *bp, VertexDescriptor *vd,
 	D = d;
 }
 
-void Pipeline::setAdvancedFeatures(VkCompareOp _compareOp, VkPolygonMode _polyModel,
- 								   VkCullModeFlagBits _CM, bool _transp) {
+void Pipeline::setAdvancedFeatures(VkCompareOp _compareOp,
+								   VkPolygonMode _polyModel,
+ 								   VkCullModeFlagBits _CM,
+								   bool _transp) {
  	compareOp = _compareOp;
  	polyModel = _polyModel;
  	CM = _CM;
@@ -3253,21 +3262,25 @@ void Pipeline::cleanup() {
 void DescriptorSetLayout::init(BaseProject *bp, std::vector<DescriptorSetLayoutBinding> B) {
 	BP = bp;
 	Bindings = B;
+	imgInfoSize = 0;
 	
-	std::vector<VkDescriptorSetLayoutBinding> bindings;
-	bindings.resize(B.size());
+	std::vector<VkDescriptorSetLayoutBinding> binds;
+	binds.resize(B.size());
 	for(int i = 0; i < B.size(); i++) {
-		bindings[i].binding = B[i].binding;
-		bindings[i].descriptorType = B[i].type;
-		bindings[i].descriptorCount = 1;
-		bindings[i].stageFlags = B[i].flags;
-		bindings[i].pImmutableSamplers = nullptr;
+		binds[i].binding = B[i].binding;
+		binds[i].descriptorType = B[i].type;
+		binds[i].descriptorCount = B[i].count;
+		binds[i].stageFlags = B[i].flags;
+		binds[i].pImmutableSamplers = nullptr;
+		if((B[i].type == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER) && (B[i].linkSize + B[i].count > imgInfoSize)) {
+			imgInfoSize = B[i].linkSize + B[i].count;
+		}
 	}
 	
 	VkDescriptorSetLayoutCreateInfo layoutInfo{};
 	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-	layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());;
-	layoutInfo.pBindings = bindings.data();
+	layoutInfo.bindingCount = static_cast<uint32_t>(binds.size());;
+	layoutInfo.pBindings = binds.data();
 	
 	VkResult result = vkCreateDescriptorSetLayout(BP->device, &layoutInfo,
 								nullptr, &descriptorSetLayout);
@@ -3282,10 +3295,13 @@ void DescriptorSetLayout::cleanup() {
 }
 
 void DescriptorSet::init(BaseProject *bp, DescriptorSetLayout *DSL,
-						 Texture **Txs) {
+						 std::vector<Texture *>Txs) {
 	BP = bp;
+	Layout = DSL;
 	
 	int size = DSL->Bindings.size();
+	int imgInfoSize = DSL->imgInfoSize;
+//std::cout << "imgInfoSize: " << imgInfoSize << "(" << size << ")\n";
 	
 	uniformBuffers.resize(size);
 	uniformBuffersMemory.resize(size);
@@ -3331,7 +3347,7 @@ void DescriptorSet::init(BaseProject *bp, DescriptorSetLayout *DSL,
 	for (size_t i = 0; i < BP->swapChainImages.size(); i++) {
 		std::vector<VkWriteDescriptorSet> descriptorWrites(size);
 		std::vector<VkDescriptorBufferInfo> bufferInfo(size);
-		std::vector<VkDescriptorImageInfo> imageInfo(size);
+		std::vector<VkDescriptorImageInfo> imageInfo(imgInfoSize);
 		for (int j = 0; j < size; j++) {
 			if(DSL->Bindings[j].type == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER) {
 				bufferInfo[j].buffer = uniformBuffers[j][i];
@@ -3343,13 +3359,16 @@ void DescriptorSet::init(BaseProject *bp, DescriptorSetLayout *DSL,
 				descriptorWrites[j].dstBinding = DSL->Bindings[j].binding;
 				descriptorWrites[j].dstArrayElement = 0;
 				descriptorWrites[j].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-				descriptorWrites[j].descriptorCount = 1;
+				descriptorWrites[j].descriptorCount = DSL->Bindings[j].count;
 				descriptorWrites[j].pBufferInfo = &bufferInfo[j];
 			} else if(DSL->Bindings[j].type == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER) {
-				Texture *Tx = Txs[DSL->Bindings[j].linkSize];
-				imageInfo[j].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-				imageInfo[j].imageView = Tx->textureImageView;
-				imageInfo[j].sampler = Tx->textureSampler;
+				for(int k = 0; k < DSL->Bindings[j].count; k++) {
+					int h = DSL->Bindings[j].linkSize + k;
+					Texture *Tx = Txs[h];
+					imageInfo[h].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+					imageInfo[h].imageView = Tx->textureImageView;
+					imageInfo[h].sampler = Tx->textureSampler;
+				}
 		
 				descriptorWrites[j].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 				descriptorWrites[j].dstSet = descriptorSets[i];
@@ -3357,8 +3376,8 @@ void DescriptorSet::init(BaseProject *bp, DescriptorSetLayout *DSL,
 				descriptorWrites[j].dstArrayElement = 0;
 				descriptorWrites[j].descriptorType =
 											VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-				descriptorWrites[j].descriptorCount = 1;
-				descriptorWrites[j].pImageInfo = &imageInfo[j];
+				descriptorWrites[j].descriptorCount = DSL->Bindings[j].count;
+				descriptorWrites[j].pImageInfo = &imageInfo[DSL->Bindings[j].linkSize];
 			}
 		}		
 		vkUpdateDescriptorSets(BP->device,
@@ -3387,8 +3406,10 @@ void DescriptorSet::bind(VkCommandBuffer commandBuffer, Pipeline &P, int setId,
 					0, nullptr);
 }
 
-void DescriptorSet::map(int currentImage, void *src, int size, int slot) {
+void DescriptorSet::map(int currentImage, void *src, int slot) {
 	void* data;
+
+	int size = Layout->Bindings[slot].linkSize;
 
 	vkMapMemory(BP->device, uniformBuffersMemory[slot][currentImage], 0,
 						size, 0, &data);
