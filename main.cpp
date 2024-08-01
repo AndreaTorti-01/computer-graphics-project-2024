@@ -32,8 +32,8 @@ struct GlobalUniformBufferObject {
 // Example
 struct ToonVertex {
 	glm::vec3 pos;
-	glm::vec3 norm;
 	glm::vec2 UV;
+	glm::vec3 norm;
 };
 
 struct SkyBoxVertex {
@@ -138,21 +138,28 @@ class Application : public BaseProject {
 				});
 
 		// Pipelines [Shader couples]
-    PToon.init(this, &VDToon,  "shaders/Vert.spv",    "shaders/ToonFrag.spv",  {&DSLToon});
-    PBW.init(this, &VDToon, "shaders/Vert.spv",      "shaders/BWFrag.spv", {&DSLBW});
+    PToon.init(this, &VDToon,  "shaders/Vert.spv",    "shaders/ToonFrag.spv",  {&DSLGlobal, &DSLToon});
+    PBW.init(this, &VDToon, "shaders/Vert.spv",      "shaders/BWFrag.spv", {&DSLGlobal, &DSLBW});
 		PSkyBox.init(this, &VDSkyBox, "shaders/SkyBoxVert.spv", "shaders/SkyBoxFrag.spv", {&DSLSkyBox});
 		PSkyBox.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, false);
 
 		// Create Models
     MCar.init(this, &VDToon, "models/Car.mgcg", MGCG);
+
+    if (MCar.indices.empty()){
+      std::cout << "car not loaded";
+      exit(0);
+    }
+
     MMike.init(this, &VDToon, "models/Mike.obj", OBJ);
-    MSkyBox.init(this, &VDToon, "models/SkyBox.obj", OBJ);
+    MSkyBox.init(this, &VDSkyBox, "models/SkyBox.obj", OBJ);
 		
 		// Create the textures
     
 		TGeneric.init(this, "textures/Textures.png");
 		TMike.init(this, "textures/T_Zebra.png");
-		TSkyBox.init(this, "textures/T_SkyBox.jpg");
+		TSkyBox.init(this, "textures/Textures.png");
+
 
 
 		// Descriptor pool sizes
@@ -174,6 +181,8 @@ std::cout << "Initializing text\n";
 	
 	// Here you create your pipelines and Descriptor Sets!
 	void pipelinesAndDescriptorSetsInit() {
+    
+    std::cout << "pipeline and descriptors init started \n";
 		// This creates a new pipeline (with the current surface), using its shaders
 		PBW.create();
     PToon.create();
@@ -183,10 +192,11 @@ std::cout << "Initializing text\n";
     DSCar.init(this, &DSLToon, {&TGeneric});
 		DSMike.init(this, &DSLBW, {&TMike});
 
-		DSSkyBox.init(this, &DSLSkyBox, {&TSkyBox});
+		//DSSkyBox.init(this, &DSLSkyBox, {&TSkyBox});
 		DSGlobal.init(this, &DSLGlobal, {});
 
 		txt.pipelinesAndDescriptorSetsInit();		
+    std::cout << "pipeline and descriptors init stopped \n";
 	}
 
 	// Here you destroy your pipelines and Descriptor Sets!
@@ -237,7 +247,11 @@ std::cout << "Initializing text\n";
 	// with their buffers and textures
 	
 	void populateCommandBuffer(VkCommandBuffer commandBuffer, int currentImage) {
-    std::cout << "gay";
+    
+
+
+    std::cout << "Car started \n";
+
 		// binds the pipeline
 		PToon.bind(commandBuffer);
 		MCar.bind(commandBuffer);
@@ -247,6 +261,8 @@ std::cout << "Initializing text\n";
 		vkCmdDrawIndexed(commandBuffer,
 				static_cast<uint32_t>(MCar.indices.size()), 1, 0, 0, 0);	
                                                         
+    std::cout << "Mike started \n";
+
     PBW.bind(commandBuffer);
 		MMike.bind(commandBuffer);
 		DSGlobal.bind(commandBuffer, PBW, 0, currentImage);	// The Global Descriptor Set (Set 0)
@@ -255,12 +271,14 @@ std::cout << "Initializing text\n";
 		vkCmdDrawIndexed(commandBuffer,
 				static_cast<uint32_t>(MMike.indices.size()), 1, 0, 0, 0);
 
+    std::cout << "SkyBox started \n";
+
 		PSkyBox.bind(commandBuffer);
     MSkyBox.bind(commandBuffer);
-		DSMike.bind(commandBuffer, PBW, 2, currentImage);
+		DSSkyBox.bind(commandBuffer, PSkyBox, 0, currentImage);
 
-		vkCmdDrawIndexed(commandBuffer,
-				static_cast<uint32_t>(MSkyBox.indices.size()), 1, 0, 0, 0);	
+		//vkCmdDrawIndexed(commandBuffer,
+				//static_cast<uint32_t>(MSkyBox.indices.size()), 1, 0, 0, 0);	
 
 		txt.populateCommandBuffer(commandBuffer, currentImage, currScene);
 	}
