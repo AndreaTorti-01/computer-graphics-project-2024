@@ -71,6 +71,7 @@ class Application : public BaseProject {
 	float CamAlpha = 0.0f;
 	float CamBeta = 0.0f;
 	float Ar;
+  glm::mat4 ViewMatrix;
 	
 	// Here you set the main application parameters
 	void setWindowParameters() {
@@ -177,6 +178,8 @@ std::cout << "Initializing text\n";
 		std::cout << "Uniform Blocks in the Pool  : " << DPSZs.uniformBlocksInPool << "\n";
 		std::cout << "Textures in the Pool        : " << DPSZs.texturesInPool << "\n";
 		std::cout << "Descriptor Sets in the Pool : " << DPSZs.setsInPool << "\n";
+
+		ViewMatrix = glm::translate(glm::mat4(1), -CamPos);
 	}
 	
 	// Here you create your pipelines and Descriptor Sets!
@@ -192,7 +195,7 @@ std::cout << "Initializing text\n";
     DSCar.init(this, &DSLToon, {&TGeneric});
 		DSMike.init(this, &DSLBW, {&TMike});
 
-		//DSSkyBox.init(this, &DSLSkyBox, {&TSkyBox});
+		DSSkyBox.init(this, &DSLSkyBox, {&TSkyBox, &TSkyBox});
 		DSGlobal.init(this, &DSLGlobal, {});
 
 		txt.pipelinesAndDescriptorSetsInit();		
@@ -249,7 +252,6 @@ std::cout << "Initializing text\n";
 	void populateCommandBuffer(VkCommandBuffer commandBuffer, int currentImage) {
     
 
-
     std::cout << "Car started \n";
 
 		// binds the pipeline
@@ -277,8 +279,8 @@ std::cout << "Initializing text\n";
     MSkyBox.bind(commandBuffer);
 		DSSkyBox.bind(commandBuffer, PSkyBox, 0, currentImage);
 
-		//vkCmdDrawIndexed(commandBuffer,
-				//static_cast<uint32_t>(MSkyBox.indices.size()), 1, 0, 0, 0);	
+		vkCmdDrawIndexed(commandBuffer,
+				static_cast<uint32_t>(MSkyBox.indices.size()), 1, 0, 0, 0);	
 
 		txt.populateCommandBuffer(commandBuffer, currentImage, currScene);
 	}
@@ -286,142 +288,34 @@ std::cout << "Initializing text\n";
 	// Here is where you update the uniforms.
 	// Very likely this will be where you will be writing the logic of your application.
 	void updateUniformBuffer(uint32_t currentImage) {
-		static bool debounce = false;
-		static int curDebounce = 0;
 
-		float deltaT;
-		glm::vec3 m = glm::vec3(0.0f), r = glm::vec3(0.0f);
-		bool fire = false;
-		getSixAxis(deltaT, m, r, fire);
-		
-		static float autoTime = true;
-		static float cTime = 0.0;
-		const float turnTime = 36.0f;
-		const float angTurnTimeFact = 2.0f * M_PI / turnTime;
-		
-		if(autoTime) {
-			cTime = cTime + deltaT;
-			cTime = (cTime > turnTime) ? (cTime - turnTime) : cTime;
-		}
-		cTime += r.z * angTurnTimeFact * 4.0;
-		
-		const float ROT_SPEED = glm::radians(120.0f);
-		const float MOVE_SPEED = 2.0f;
-		
-		CamAlpha = CamAlpha - ROT_SPEED * deltaT * r.y;
-		CamBeta  = CamBeta  - ROT_SPEED * deltaT * r.x;
-		CamBeta  =  CamBeta < glm::radians(-90.0f) ? glm::radians(-90.0f) :
-				   (CamBeta > glm::radians( 90.0f) ? glm::radians( 90.0f) : CamBeta);
+    // Update MVP matrices
+    //glm::mat4 view = glm::lookAt(CamPos, CamPos + getCameraFront(), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 proj = glm::perspective(glm::radians(45.0f), Ar, 0.1f, 100.0f);
+    proj[1][1] *= -1;  // Flip Y coordinate for Vulkan
 
-		glm::vec3 ux = glm::rotate(glm::mat4(1.0f), CamAlpha, glm::vec3(0,1,0)) * glm::vec4(1,0,0,1);
-		glm::vec3 uz = glm::rotate(glm::mat4(1.0f), CamAlpha, glm::vec3(0,1,0)) * glm::vec4(0,0,1,1);
-		CamPos = CamPos + MOVE_SPEED * m.x * ux * deltaT;
-		CamPos = CamPos + MOVE_SPEED * m.y * glm::vec3(0,1,0) * deltaT;
-		CamPos = CamPos + MOVE_SPEED * m.z * uz * deltaT;
-		
-		static float subpassTimer = 0.0;
+		glm::mat4 view =  proj * ViewMatrix;
+    // Update Car uniforms
+    ToonUniformBufferObject uboToon{};
+    uboToon.mvpMat = proj * view * glm::mat4(1.0f);  // Adjust model matrix as needed
+    uboToon.mMat = glm::mat4(1.0f);  // Adjust as needed
+    uboToon.nMat = glm::transpose(glm::inverse(uboToon.mMat));
+    DSCar.map(currentImage, &uboToon, 0);
 
-		if(glfwGetKey(window, GLFW_KEY_SPACE)) {
-			if(!debounce) {
-				debounce = true;
-				curDebounce = GLFW_KEY_SPACE;
-				if(currScene != 1) {
-					currScene = (currScene+1) % outText.size();
+    // Update Mike uniforms
+    DSMike.map(currentImage, &uboToon, 0);
 
-				}
-				if(currScene == 1) {
-					if(subpass >= 4) {
-						currScene = 0;
-					}
-				}
-				std::cout << "Scene : " << currScene << "\n";
-				
-				RebuildPipeline();
-			}
-		} else {
-			if((curDebounce == GLFW_KEY_SPACE) && debounce) {
-				debounce = false;
-				curDebounce = 0;
-			}
-		}
+    // Update Skybox uniforms
+    SkyBoxUniformBufferObject uboSky{};
+    uboSky.mvpMat = proj * glm::mat4(glm::mat3(view));  // Remove translation from view matrix
+    DSSkyBox.map(currentImage, &uboSky, 0);
 
-		// Standard procedure to quit when the ESC key is pressed
-		if(glfwGetKey(window, GLFW_KEY_ESCAPE)) {
-			glfwSetWindowShouldClose(window, GL_TRUE);
-		}
-
-
-		if(glfwGetKey(window, GLFW_KEY_V)) {
-			if(!debounce) {
-				debounce = true;
-				curDebounce = GLFW_KEY_V;
-
-				printVec3("CamPos  ", CamPos);				
-				std::cout << "CamAlpha = " << CamAlpha << ";\n";
-				std::cout << "CamBeta  = " << CamBeta  << ";\n";
-				std::cout << "cTime    = " << cTime    << ";\n";
-			}
-		} else {
-			if((curDebounce == GLFW_KEY_V) && debounce) {
-				debounce = false;
-				curDebounce = 0;
-			}
-		}
-
-	
-/*		if(currScene == 1) {
-			switch(subpass) {
-			  case 0:
-CamPos   = glm::vec3(0.0644703, 6.442, 8.83251);
-CamAlpha = 0;
-CamBeta  = -0.4165;
-cTime    = 2.40939;
-autoTime = false;
-				break;
-			  case 1:
-CamPos   = glm::vec3(-1.21796, 6.82323, 5.58497);
-CamAlpha = 0.284362;
-CamBeta  = -0.58455;
-cTime    = 23.3533;
-				break;
-			  case 2:
-CamPos   = glm::vec3(0.921455, 3.97743, 0.855181);
-CamAlpha = -1.16426;
-CamBeta  = -0.388393;
-cTime    = 36.6178;
-				break;
-			  case 3:
- CamPos   = glm::vec3(5.59839, 4.04786, 2.59767);
-CamAlpha = 1.01073;
-CamBeta  = -0.213902;
-cTime    = 15.6739;
-				break;
-			}
-		}
-		
-		if(currScene == 1) {
-			subpassTimer += deltaT;
-			if(subpassTimer > 4.0f) {
-				subpassTimer = 0.0f;
-				subpass++;
-				std::cout << "Scene : " << currScene << " subpass: " << subpass << "\n";
-				char buf[20];
-				sprintf(buf, "A08_%d.png", subpass);
-				saveScreenshot(buf, currentImage);
-				if(subpass == 4) {
-CamPos   = glm::vec3(0, 1.5, 7);
-CamAlpha = 0;
-CamBeta  = 0;
-autoTime = true;
-					currScene = 0;
-					std::cout << "Scene : " << currScene << "\n";
-					RebuildPipeline();
-				}
-			}
-		}*/
-
-
-		// Here is where you actually update your uniforms
+    // Update global uniforms
+    GlobalUniformBufferObject uboGlobal{};
+    uboGlobal.lightDir = glm::normalize(glm::vec3(1.0f, 1.0f, 1.0f));
+    uboGlobal.lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    uboGlobal.eyePos = CamPos;
+    DSGlobal.map(currentImage, &uboGlobal, 0);
 	}
 };
 
