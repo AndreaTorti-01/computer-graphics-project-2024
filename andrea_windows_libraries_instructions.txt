@@ -1,0 +1,9 @@
+install vulkan sdk https://vulkan.lunarg.com/sdk/home#windows in C:\VulkanSDK\ (without version number)
+
+download glm https://github.com/g-truc/glm/releases
+move everything in C:\vs_graphics_libraries\glm
+
+download glfw 64 bit binaries https://www.glfw.org/download.html
+move everything in C:\vs_graphics_libraries\glfw.bin.WIN64
+
+activate the property sheet in property manager
