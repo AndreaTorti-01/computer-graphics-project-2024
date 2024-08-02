@@ -114,7 +114,6 @@ protected:
 		DSLSkyBox.init(this, {
 					{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, sizeof(SkyBoxUniformBufferObject), 1},
 					{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1},
-					{2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 1, 1}
 			});
 
 
@@ -193,10 +192,10 @@ protected:
 		PSkyBox.create();
 
 		// Here you define the data set
-    DSCar.init(this, &DSLToon, {&TGeneric});
+    	DSCar.init(this, &DSLToon, {&TGeneric});
 		DSMike.init(this, &DSLBW, {&TMike});
-    DSFloor.init(this, &DSLToon, {&TGeneric});
-		DSSkyBox.init(this, &DSLSkyBox, { &TSkyBox, &TSkyBox });
+    	DSFloor.init(this, &DSLToon, {&TGeneric});
+		DSSkyBox.init(this, &DSLSkyBox, { &TSkyBox});
 		DSGlobal.init(this, &DSLGlobal, {});
 
 		txt.pipelinesAndDescriptorSetsInit();
