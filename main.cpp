@@ -369,12 +369,18 @@ protected:
     // Update Car uniforms
     ToonUniformBufferObject uboCar{};
     uboCar.mMat = glm::mat4(1.0f);  // Adjust as needed
+	uboCar.mMat = glm::rotate(uboCar.mMat, glm::radians(90.0f), glm::vec3(1.0f,0.0f,0.0f));
+	uboCar.mMat = glm::rotate(uboCar.mMat, glm::radians(180.0f), glm::vec3(0.0f,0.0f,1.0f));
     uboCar.mvpMat = ViewPrj * uboCar.mMat;  // Adjust model matrix as needed
     uboCar.nMat = glm::inverse(glm::transpose(uboCar.mMat));
     DSCar.map(currentImage, &uboCar, 0);
 
     // Update Mike uniforms
-    DSMike.map(currentImage, &uboCar, 0);
+    ToonUniformBufferObject uboMike{};
+    uboMike.mMat = glm::mat4(1.0f);  // Adjust as needed
+    uboMike.mvpMat = ViewPrj * uboMike.mMat;  // Adjust model matrix as needed
+    uboMike.nMat = glm::inverse(glm::transpose(uboMike.mMat));
+    DSMike.map(currentImage, &uboMike, 0);
 
     // Update FLoor uniforms
     
