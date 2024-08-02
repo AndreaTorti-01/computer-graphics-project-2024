@@ -58,8 +58,8 @@ class Application : public BaseProject {
   TextMaker txt;
 
 	// Models, textures and Descriptor Sets (values assigned to the uniforms)
-  Model MCar, MMike, MSkyBox, TFloor;
-  Texture TGeneric, TMike, TSkyBox;
+  Model MCar, MMike, MSkyBox, MFloor;
+  Texture TGeneric, TMike, TSkyBox, TFloor;
 
   DescriptorSet DSGlobal, DSCar, DSMike, DSSkyBox, DSFloor;
 	
@@ -67,7 +67,7 @@ class Application : public BaseProject {
 	int currScene = 0;
 	int subpass = 0;
 		
-	glm::vec3 CamPos = glm::vec3(0.0, 1.5, 7.0);
+	glm::vec3 CamPos = glm::vec3(0.0, 10.0, 0.0);
 	float CamAlpha = 0.0f;
 	float CamBeta = 0.0f;
 	float Ar;
@@ -154,12 +154,13 @@ class Application : public BaseProject {
 
     MMike.init(this, &VDToon, "models/Mike.obj", OBJ);
     MSkyBox.init(this, &VDSkyBox, "models/SkyBox.obj", OBJ);
+    MFloor.init(this, &VDToon, "models/Floor.obj", OBJ);
 		
 		// Create the textures
     
 		TGeneric.init(this, "textures/Textures.png");
 		TMike.init(this, "textures/T_Zebra.png");
-		TSkyBox.init(this, "textures/Textures.png");
+		TSkyBox.init(this, "textures/T_SkyBox.jpg");
 
 
 
@@ -194,6 +195,7 @@ std::cout << "Initializing text\n";
 		// Here you define the data set
     DSCar.init(this, &DSLToon, {&TGeneric});
 		DSMike.init(this, &DSLBW, {&TMike});
+    DSFloor.init(this, &DSLToon, {&TGeneric});
 
 		DSSkyBox.init(this, &DSLSkyBox, {&TSkyBox, &TSkyBox});
 		DSGlobal.init(this, &DSLGlobal, {});
@@ -212,6 +214,7 @@ std::cout << "Initializing text\n";
 
 		DSCar.cleanup();
 		DSMike.cleanup();
+    DSFloor.cleanup();
     DSSkyBox.cleanup();
 		DSGlobal.cleanup();
 
@@ -230,6 +233,7 @@ std::cout << "Initializing text\n";
     MCar.cleanup();
     MMike.cleanup();
 		MSkyBox.cleanup();
+    MFloor.cleanup();
 
 		// Cleanup descriptor set layouts
 		DSLToon.cleanup();
@@ -251,9 +255,15 @@ std::cout << "Initializing text\n";
 	
 	void populateCommandBuffer(VkCommandBuffer commandBuffer, int currentImage) {
     
+/*
+    PToon.bind(commandBuffer);
+    MFloor.bind(commandBuffer);
+		DSGlobal.bind(commandBuffer, PBW, 0, currentImage);	// The Global Descriptor Set (Set 0)
+    DSFloor.bind(commandBuffer, PToon, 1, currentImage);
 
-    std::cout << "Car started \n";
-
+		vkCmdDrawIndexed(commandBuffer,
+				static_cast<uint32_t>(MFloor.indices.size()), 1, 0, 0, 0);
+*/
 		// binds the pipeline
 		PToon.bind(commandBuffer);
 		MCar.bind(commandBuffer);
@@ -263,7 +273,6 @@ std::cout << "Initializing text\n";
 		vkCmdDrawIndexed(commandBuffer,
 				static_cast<uint32_t>(MCar.indices.size()), 1, 0, 0, 0);	
                                                         
-    std::cout << "Mike started \n";
 
     PBW.bind(commandBuffer);
 		MMike.bind(commandBuffer);
@@ -273,7 +282,7 @@ std::cout << "Initializing text\n";
 		vkCmdDrawIndexed(commandBuffer,
 				static_cast<uint32_t>(MMike.indices.size()), 1, 0, 0, 0);
 
-    std::cout << "SkyBox started \n";
+
 
 		PSkyBox.bind(commandBuffer);
     MSkyBox.bind(commandBuffer);
@@ -283,39 +292,96 @@ std::cout << "Initializing text\n";
 				static_cast<uint32_t>(MSkyBox.indices.size()), 1, 0, 0, 0);	
 
 		txt.populateCommandBuffer(commandBuffer, currentImage, currScene);
+
 	}
 
 	// Here is where you update the uniforms.
 	// Very likely this will be where you will be writing the logic of your application.
 	void updateUniformBuffer(uint32_t currentImage) {
 
-    // Update MVP matrices
-    //glm::mat4 view = glm::lookAt(CamPos, CamPos + getCameraFront(), glm::vec3(0.0f, 1.0f, 0.0f));
-    glm::mat4 proj = glm::perspective(glm::radians(45.0f), Ar, 0.1f, 100.0f);
-    proj[1][1] *= -1;  // Flip Y coordinate for Vulkan
+		static bool debounce = false;
+		static int curDebounce = 0;
 
-		glm::mat4 view =  proj * ViewMatrix;
+		float deltaT;
+		glm::vec3 m = glm::vec3(0.0f), r = glm::vec3(0.0f);
+		bool fire = false;
+		getSixAxis(deltaT, m, r, fire);
+		
+		static float autoTime = true;
+		static float cTime = 0.0;
+		const float turnTime = 72.0f;
+		const float angTurnTimeFact = 2.0f * M_PI / turnTime;
+		
+		if(autoTime) {
+			cTime = cTime + deltaT;
+			cTime = (cTime > turnTime) ? (cTime - turnTime) : cTime;
+		}
+
+		static float tTime = 0.0;
+		const float TturnTime = 60.0f;
+		const float TangTurnTimeFact = 1.0f / TturnTime;
+		
+		if(autoTime) {
+			tTime = tTime + deltaT;
+			tTime = (tTime > TturnTime) ? (tTime - TturnTime) : tTime;
+		}
+		
+		const float ROT_SPEED = glm::radians(120.0f);
+		const float MOVE_SPEED = 2.0f;
+		
+		static float ShowCloud = 1.0f;
+		static float ShowTexture = 1.0f;
+		
+		// The Fly model update proc.
+		ViewMatrix = glm::rotate(glm::mat4(1), ROT_SPEED * r.x * deltaT,
+								 glm::vec3(1, 0, 0)) * ViewMatrix;
+		ViewMatrix = glm::rotate(glm::mat4(1), ROT_SPEED * r.y * deltaT,
+								 glm::vec3(0, 1, 0)) * ViewMatrix;
+		ViewMatrix = glm::rotate(glm::mat4(1), -ROT_SPEED * r.z * deltaT,
+								 glm::vec3(0, 0, 1)) * ViewMatrix;
+		ViewMatrix = glm::translate(glm::mat4(1), -glm::vec3(
+								   MOVE_SPEED * m.x * deltaT, MOVE_SPEED * m.y * deltaT, MOVE_SPEED * m.z * deltaT))
+													   * ViewMatrix;
+
+		glm::mat4 M = glm::perspective(glm::radians(45.0f), Ar, 0.1f, 160.0f);
+		M[1][1] *= -1;
+
+		glm::mat4 Mv = ViewMatrix;
+
+		glm::mat4 ViewPrj =  M * Mv;
+		glm::mat4 baseTr = glm::mat4(1.0f);								
+
+    // Update global uniforms
+
+		GlobalUniformBufferObject uboGlobal{};
+		uboGlobal.lightDir = glm::normalize(glm::vec3(cos(glm::radians(135.0f)) * cos(cTime * angTurnTimeFact), sin(glm::radians(135.0f)), cos(glm::radians(135.0f)) * sin(cTime * angTurnTimeFact)));
+		uboGlobal.lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+		uboGlobal.eyePos = glm::vec3(glm::inverse(ViewMatrix) * glm::vec4(0, 0, 0, 1));
+		DSGlobal.map(currentImage, &uboGlobal, 0);
+
     // Update Car uniforms
-    ToonUniformBufferObject uboToon{};
-    uboToon.mvpMat = proj * view * glm::mat4(1.0f);  // Adjust model matrix as needed
-    uboToon.mMat = glm::mat4(1.0f);  // Adjust as needed
-    uboToon.nMat = glm::transpose(glm::inverse(uboToon.mMat));
-    DSCar.map(currentImage, &uboToon, 0);
+    ToonUniformBufferObject uboCar{};
+    uboCar.mMat = glm::mat4(1.0f);  // Adjust as needed
+    uboCar.mvpMat = ViewPrj * uboCar.mMat;  // Adjust model matrix as needed
+    uboCar.nMat = glm::inverse(glm::transpose(uboCar.mMat));
+    DSCar.map(currentImage, &uboCar, 0);
 
     // Update Mike uniforms
-    DSMike.map(currentImage, &uboToon, 0);
+    DSMike.map(currentImage, &uboCar, 0);
+
+    // Update FLoor uniforms
+    
+    ToonUniformBufferObject uboFloor{};
+    uboFloor.mMat = glm::rotate(glm::mat4(1.0f), glm::radians(45.0f), glm::vec3(1.0f,1.0f,0.0f));  // Adjust as needed
+    uboFloor.mvpMat = ViewPrj * glm::mat4(1.0f);  // Adjust model matrix as needed
+    uboFloor.nMat = glm::transpose(glm::inverse(uboFloor.mMat));
+    DSFloor.map(currentImage, &uboFloor, 0);
 
     // Update Skybox uniforms
     SkyBoxUniformBufferObject uboSky{};
-    uboSky.mvpMat = proj * glm::mat4(glm::mat3(view));  // Remove translation from view matrix
+    uboSky.mvpMat = M * glm::mat4(glm::mat3(Mv));  // Remove translation from view matrix
     DSSkyBox.map(currentImage, &uboSky, 0);
 
-    // Update global uniforms
-    GlobalUniformBufferObject uboGlobal{};
-    uboGlobal.lightDir = glm::normalize(glm::vec3(1.0f, 1.0f, 1.0f));
-    uboGlobal.lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-    uboGlobal.eyePos = CamPos;
-    DSGlobal.map(currentImage, &uboGlobal, 0);
 	}
 };
 
