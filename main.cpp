@@ -316,11 +316,11 @@ protected:
 		static float carRotation = 0.0f;
 		static float carSpeed = 0.0f;
 		static float currentSteeringAngle = 0.0f;
-		const float MAX_SPEED = 5.0f;
-		const float ACCELERATION = 2.0f;
-		const float DECELERATION = 4.0f;
-		const float MAX_STEERING_ANGLE = glm::radians(30.0f);
-		const float STEERING_SPEED = glm::radians(60.0f); // Speed of steering change
+		const float MAX_SPEED = 8.0f;
+		const float ACCELERATION = 5.0f;
+		const float DECELERATION = 20.0f;
+		const float MAX_STEERING_ANGLE = glm::radians(35.0f);
+		const float STEERING_SPEED = glm::radians(180.0f); // Speed of steering change
 		const float WHEELBASE = 2.0f;
 
 		// Update car speed
@@ -359,25 +359,46 @@ protected:
 			);
 		}
 
+		// Tilt the car based on amount of acceleration
+		float carTilt = 0.0f;
+		if (m.z > 0.1f) {
+			carTilt = glm::radians(-5.0f); // Tilt backward when accelerating
+		}
+		else if (m.z < -0.1f) {
+			carTilt = glm::radians(5.0f); // Tilt forward when decelerating
+		}
+
 		// Update car matrix
 		CarPos = glm::translate(glm::mat4(1.0f), carPosition) *
-			glm::rotate(glm::mat4(1.0f), -carRotation, glm::vec3(0.0f, 1.0f, 0.0f));
+			glm::rotate(glm::mat4(1.0f), -carRotation, glm::vec3(0.0f, 1.0f, 0.0f)) *
+			glm::rotate(glm::mat4(1.0f), carTilt, glm::vec3(0.0f, 0.0f, -1.0f));
 		// Apply additional rotations to align the car model correctly
 		CarPos = glm::rotate(CarPos, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 		CarPos = glm::rotate(CarPos, glm::radians(270.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
-		// Camera position (following car from top and slightly to the side)
+		// Camera position (static relative to the car)
 		glm::vec3 cameraOffset = glm::vec3(5.0f, 10.0f, 5.0f);
 		glm::vec3 cameraPosition = carPosition + cameraOffset;
 
 		// Look at the car
 		ViewMatrix = glm::lookAt(cameraPosition, carPosition, glm::vec3(0.0f, 1.0f, 0.0f));
 
-		// Projection and view-projection matrices
-		glm::mat4 M = glm::perspective(glm::radians(45.0f), Ar, 0.1f, 160.0f);
+		// Projection matrix with FOV adjustment based on speed
+		float fov = glm::radians(30.0f + std::abs(carSpeed) * 0.75); // Increase FOV with speed
+		glm::mat4 M = glm::perspective(fov, Ar, 0.1f, 160.0f);
 		M[1][1] *= -1; // Flip Y-axis for Vulkan coordinate system
 		glm::mat4 Mv = ViewMatrix;
 		glm::mat4 ViewPrj = M * Mv;
+
+		// shake camera slightly at high speed
+		if (std::abs(carSpeed) > 0.9f * MAX_SPEED) {
+			float shakeAmount = 0.004f * (std::abs(carSpeed) - 0.9f * MAX_SPEED) / (0.1f * MAX_SPEED);
+			ViewPrj = glm::translate(ViewPrj, glm::vec3(
+				0.0f,
+				shakeAmount * (std::sin(time * 50.0f) + std::cos(time * 47.0f)),
+				shakeAmount * (std::cos(time * 53.0f) + std::sin(time * 59.0f))
+			));
+		}
 
 		// Update global uniforms
 		GlobalUniformBufferObject uboGlobal{};
@@ -416,6 +437,8 @@ protected:
 		uboSky.mvpMat = M * glm::mat4(glm::mat3(Mv)); // Remove translation from view matrix
 		DSSkyBox.map(currentImage, &uboSky, 0);
 	}
+
+
 };
 
 // This is the main: probably you do not need to touch this!
