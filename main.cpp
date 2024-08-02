@@ -29,11 +29,11 @@ struct GlobalUniformBufferObject
 
 // The vertices data structures
 // Example
-struct ToonVertex
+struct GenericVertex
 {
 	glm::vec3 pos;
-	glm::vec2 UV;
 	glm::vec3 norm;
+	glm::vec2 UV;
 };
 
 struct SkyBoxVertex
@@ -49,7 +49,7 @@ protected:
 	DescriptorSetLayout DSLGlobal, DSLSkyBox, DSLToon, DSLBW; // For Global values
 
 	// Vertex formats
-	VertexDescriptor VDToon, VDSkyBox;
+	VertexDescriptor VDGeneric, VDSkyBox;
 
 	// Pipelines [Shader couples]
 	Pipeline PToon, PBW, PSkyBox;
@@ -108,35 +108,29 @@ protected:
 						  {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1},
 						  {2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(GlobalUniformBufferObject), 1}});
 
-		DSLSkyBox.init(this, {
-								 {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, sizeof(SkyBoxUniformBufferObject), 1},
-								 {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1},
-							 });
+		DSLSkyBox.init(this, {{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, sizeof(SkyBoxUniformBufferObject), 1},
+							  {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1},});
 
 		// Vertex descriptors
 		//
-		VDToon.init(this, {{0, sizeof(ToonVertex), VK_VERTEX_INPUT_RATE_VERTEX}}, {{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(ToonVertex, pos), sizeof(glm::vec3), POSITION}, {0, 1, VK_FORMAT_R32G32_SFLOAT, offsetof(ToonVertex, UV), sizeof(glm::vec2), UV}, {0, 2, VK_FORMAT_R32G32B32_SFLOAT, offsetof(ToonVertex, norm), sizeof(glm::vec3), NORMAL}});
+		VDGeneric.init(this, {{0, sizeof(GenericVertex), VK_VERTEX_INPUT_RATE_VERTEX}}, 
+		{{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(GenericVertex, pos), sizeof(glm::vec3), POSITION},
+		 {0, 1, VK_FORMAT_R32G32B32_SFLOAT, offsetof(GenericVertex, norm), sizeof(glm::vec3), NORMAL},
+		 {0, 2, VK_FORMAT_R32G32_SFLOAT, offsetof(GenericVertex, UV), sizeof(glm::vec2), UV}});
 
 		VDSkyBox.init(this, {{0, sizeof(SkyBoxVertex), VK_VERTEX_INPUT_RATE_VERTEX}}, {{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(SkyBoxVertex, pos), sizeof(glm::vec3), POSITION}});
 
 		// Pipelines [Shader couples]
-		PToon.init(this, &VDToon, "shaders/Vert.spv", "shaders/ToonFrag.spv", {&DSLGlobal, &DSLToon});
-		PBW.init(this, &VDToon, "shaders/Vert.spv", "shaders/BWFrag.spv", {&DSLGlobal, &DSLBW});
+		PToon.init(this, &VDGeneric, "shaders/Vert.spv", "shaders/ToonFrag.spv", {&DSLGlobal, &DSLToon});
+		PBW.init(this, &VDGeneric, "shaders/Vert.spv", "shaders/BWFrag.spv", {&DSLGlobal, &DSLBW});
 		PSkyBox.init(this, &VDSkyBox, "shaders/SkyBoxVert.spv", "shaders/SkyBoxFrag.spv", {&DSLSkyBox});
 		PSkyBox.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, false);
 
 		// Create Models
-		MCar.init(this, &VDToon, "models/Car.mgcg", MGCG);
-
-		if (MCar.indices.empty())
-		{
-			std::cout << "car not loaded";
-			exit(0);
-		}
-
-		MMike.init(this, &VDToon, "models/Mike.obj", OBJ);
+		MCar.init(this, &VDGeneric, "models/Car.mgcg", MGCG);
+		MMike.init(this, &VDGeneric, "models/Mike.obj", OBJ);
 		MSkyBox.init(this, &VDSkyBox, "models/SkyBox.obj", OBJ);
-		MFloor.init(this, &VDToon, "models/Floor.obj", OBJ);
+		MFloor.init(this, &VDGeneric, "models/Floor.obj", OBJ);
 
 		// Create the textures
 
@@ -291,9 +285,6 @@ protected:
 		static auto startTime = std::chrono::high_resolution_clock::now();
 		auto currentTime = std::chrono::high_resolution_clock::now();
 		float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
-
-		static bool debounce = false;
-		static int curDebounce = 0;
 
 		float deltaT;
 		glm::vec3 m = glm::vec3(0.0f), r = glm::vec3(0.0f);
