@@ -1149,10 +1149,10 @@
     <None Include="Makefile" />
     <None Include="README.md" />
     <None Include="PropertySheet.props" />
-<<<<<<< HEAD
     <None Include="computer-graphics-project-2024.vcxproj" />
-=======
->>>>>>> 2b367d5 (moved libaries and updated property sheet)
+    <None Include="windows_compile_shaders.bat">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="headers\glm\detail\glm.cpp">

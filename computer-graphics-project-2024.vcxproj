@@ -402,6 +402,7 @@
     <None Include="Makefile" />
     <None Include="PropertySheet.props" />
     <None Include="README.md" />
+    <None Include="windows_compile_shaders.bat" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="headers\glm\detail\glm.cpp" />

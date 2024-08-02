@@ -73,6 +73,8 @@ protected:
 	float Ar;
 	glm::mat4 ViewMatrix;
 
+	glm::mat4 CarPos; // The position of the car
+
 	// Here you set the main application parameters
 	void setWindowParameters()
 	{
@@ -154,6 +156,9 @@ protected:
 		std::cout << "Descriptor Sets in the Pool : " << DPSZs.setsInPool << "\n";
 
 		ViewMatrix = glm::translate(glm::mat4(1), -CamPos);
+		CarPos = glm::mat4(1);
+		CarPos = glm::rotate(CarPos, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		CarPos = glm::rotate(CarPos, glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 	}
 
 	// Here you create your pipelines and Descriptor Sets!
@@ -278,94 +283,131 @@ protected:
 		return glm::normalize(front);
 	}
 
-	// Here is where you update the uniforms.
-	// Very likely this will be where you will be writing the logic of your application.
 	void updateUniformBuffer(uint32_t currentImage)
 	{
 		static auto startTime = std::chrono::high_resolution_clock::now();
 		auto currentTime = std::chrono::high_resolution_clock::now();
 		float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
-
 		float deltaT;
 		glm::vec3 m = glm::vec3(0.0f), r = glm::vec3(0.0f);
 		bool fire = false;
-		getSixAxis(deltaT, m, r, fire);
+		getSixAxis(deltaT, m, r, fire); // Get mouse and keyboard input
 
+		// Time-related variables (for light movement)
 		static float autoTime = true;
 		static float cTime = 0.0;
 		const float turnTime = 72.0f;
 		const float angTurnTimeFact = 2.0f * M_PI / turnTime;
-
 		if (autoTime)
 		{
-			cTime = cTime + deltaT;
-			cTime = (cTime > turnTime) ? (cTime - turnTime) : cTime;
+			cTime = fmod(cTime + deltaT, turnTime);
 		}
 
 		static float tTime = 0.0;
 		const float TturnTime = 60.0f;
 		const float TangTurnTimeFact = 1.0f / TturnTime;
-
 		if (autoTime)
 		{
-			tTime = tTime + deltaT;
-			tTime = (tTime > TturnTime) ? (tTime - TturnTime) : tTime;
+			tTime = fmod(tTime + deltaT, TturnTime);
 		}
 
-		const float ROT_SPEED = glm::radians(120.0f);
-		const float MOVE_SPEED = 2.0f;
+		// Car properties
+		static glm::vec3 carPosition = glm::vec3(0.0f);
+		static float carRotation = 0.0f;
+		static float carSpeed = 0.0f;
+		static float currentSteeringAngle = 0.0f;
+		const float MAX_SPEED = 5.0f;
+		const float ACCELERATION = 2.0f;
+		const float DECELERATION = 4.0f;
+		const float MAX_STEERING_ANGLE = glm::radians(30.0f);
+		const float STEERING_SPEED = glm::radians(60.0f); // Speed of steering change
+		const float WHEELBASE = 2.0f;
 
-		// The Fly model update proc.
-		ViewMatrix = glm::rotate(glm::mat4(1), ROT_SPEED * r.x * deltaT,
-								 glm::vec3(1, 0, 0)) *
-					 ViewMatrix;
-		ViewMatrix = glm::rotate(glm::mat4(1), ROT_SPEED * r.y * deltaT,
-								 glm::vec3(0, 1, 0)) *
-					 ViewMatrix;
-		ViewMatrix = glm::rotate(glm::mat4(1), -ROT_SPEED * r.z * deltaT,
-								 glm::vec3(0, 0, 1)) *
-					 ViewMatrix;
-		ViewMatrix = glm::translate(glm::mat4(1), -glm::vec3(
-													  MOVE_SPEED * m.x * deltaT, MOVE_SPEED * m.y * deltaT, MOVE_SPEED * m.z * deltaT)) *
-					 ViewMatrix;
+		// Update car speed
+		if (m.z > 0.1f) {
+			carSpeed = glm::min(carSpeed + ACCELERATION * deltaT, MAX_SPEED);
+		}
+		else if (m.z < -0.1f) {
+			carSpeed = glm::max(carSpeed - ACCELERATION * deltaT, -MAX_SPEED);
+		}
+		else {
+			// Apply deceleration when no input
+			carSpeed = carSpeed > 0 ? glm::max(carSpeed - DECELERATION * deltaT, 0.0f) :
+				carSpeed < 0 ? glm::min(carSpeed + DECELERATION * deltaT, 0.0f) : 0.0f;
+		}
 
+		// Update steering angle incrementally
+		float targetSteeringAngle = -MAX_STEERING_ANGLE * m.x;
+		float steeringDelta = STEERING_SPEED * deltaT;
+		if (currentSteeringAngle < targetSteeringAngle) {
+			currentSteeringAngle = glm::min(currentSteeringAngle + steeringDelta, targetSteeringAngle);
+		}
+		else if (currentSteeringAngle > targetSteeringAngle) {
+			currentSteeringAngle = glm::max(currentSteeringAngle - steeringDelta, targetSteeringAngle);
+		}
+
+		// Update car position and rotation using Ackermann steering
+		if (std::abs(carSpeed) > 0.001f) {
+			float turnRadius = WHEELBASE / std::tan(std::abs(currentSteeringAngle) + 1e-5);
+			float angularVelocity = carSpeed / turnRadius;
+
+			carRotation += angularVelocity * deltaT * glm::sign(currentSteeringAngle);
+			carPosition += glm::vec3(
+				std::cos(carRotation) * carSpeed * deltaT,
+				0.0f,
+				std::sin(carRotation) * carSpeed * deltaT
+			);
+		}
+
+		// Update car matrix
+		CarPos = glm::translate(glm::mat4(1.0f), carPosition) *
+			glm::rotate(glm::mat4(1.0f), -carRotation, glm::vec3(0.0f, 1.0f, 0.0f));
+		// Apply additional rotations to align the car model correctly
+		CarPos = glm::rotate(CarPos, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		CarPos = glm::rotate(CarPos, glm::radians(270.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+
+		// Camera position (following car from top and slightly to the side)
+		glm::vec3 cameraOffset = glm::vec3(5.0f, 10.0f, 5.0f);
+		glm::vec3 cameraPosition = carPosition + cameraOffset;
+
+		// Look at the car
+		ViewMatrix = glm::lookAt(cameraPosition, carPosition, glm::vec3(0.0f, 1.0f, 0.0f));
+
+		// Projection and view-projection matrices
 		glm::mat4 M = glm::perspective(glm::radians(45.0f), Ar, 0.1f, 160.0f);
-		M[1][1] *= -1;
-
+		M[1][1] *= -1; // Flip Y-axis for Vulkan coordinate system
 		glm::mat4 Mv = ViewMatrix;
-
 		glm::mat4 ViewPrj = M * Mv;
-		glm::mat4 baseTr = glm::mat4(1.0f);
 
 		// Update global uniforms
-
 		GlobalUniformBufferObject uboGlobal{};
-		uboGlobal.lightDir = glm::normalize(glm::vec3(cos(glm::radians(135.0f)) * cos(cTime * angTurnTimeFact), sin(glm::radians(135.0f)), cos(glm::radians(135.0f)) * sin(cTime * angTurnTimeFact)));
+		uboGlobal.lightDir = glm::normalize(glm::vec3(
+			cos(glm::radians(135.0f)) * cos(cTime * angTurnTimeFact),
+			sin(glm::radians(135.0f)),
+			cos(glm::radians(135.0f)) * sin(cTime * angTurnTimeFact)
+		));
 		uboGlobal.lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 		uboGlobal.eyePos = glm::vec3(glm::inverse(ViewMatrix) * glm::vec4(0, 0, 0, 1));
 		DSGlobal.map(currentImage, &uboGlobal, 0);
 
 		// Update Car uniforms
 		ToonUniformBufferObject uboCar{};
-		uboCar.mMat = glm::mat4(1.0f); // Adjust as needed
-		uboCar.mMat = glm::rotate(uboCar.mMat, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-		uboCar.mMat = glm::rotate(uboCar.mMat, glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-		uboCar.mvpMat = ViewPrj * uboCar.mMat; // Adjust model matrix as needed
+		uboCar.mMat = CarPos;
+		uboCar.mvpMat = ViewPrj * uboCar.mMat;
 		uboCar.nMat = glm::inverse(glm::transpose(uboCar.mMat));
 		DSCar.map(currentImage, &uboCar, 0);
 
 		// Update Mike uniforms
 		ToonUniformBufferObject uboMike{};
-		uboMike.mMat = glm::mat4(1.0f);			 // Adjust as needed
-		uboMike.mvpMat = ViewPrj * uboMike.mMat; // Adjust model matrix as needed
+		uboMike.mMat = glm::mat4(1.0f);
+		uboMike.mvpMat = ViewPrj * uboMike.mMat;
 		uboMike.nMat = glm::inverse(glm::transpose(uboMike.mMat));
 		DSMike.map(currentImage, &uboMike, 0);
 
-		// Update FLoor uniforms
-
+		// Update Floor uniforms
 		ToonUniformBufferObject uboFloor{};
-		uboFloor.mMat = glm::mat4(1.0f);			 // Adjust as needed
-		uboFloor.mvpMat = ViewPrj * glm::mat4(1.0f); // Adjust model matrix as needed
+		uboFloor.mMat = glm::mat4(1.0f);
+		uboFloor.mvpMat = ViewPrj * glm::mat4(1.0f);
 		uboFloor.nMat = glm::transpose(glm::inverse(uboFloor.mMat));
 		DSFloor.map(currentImage, &uboFloor, 0);
 
