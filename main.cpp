@@ -253,15 +253,15 @@ protected:
 	
 	void populateCommandBuffer(VkCommandBuffer commandBuffer, int currentImage) {
     
-/*
-    PToon.bind(commandBuffer);
-    MFloor.bind(commandBuffer);
-		DSGlobal.bind(commandBuffer, PBW, 0, currentImage);	// The Global Descriptor Set (Set 0)
-    DSFloor.bind(commandBuffer, PToon, 1, currentImage);
+
+    	PToon.bind(commandBuffer);
+    	MFloor.bind(commandBuffer);
+		DSGlobal.bind(commandBuffer, PToon, 0, currentImage);	// The Global Descriptor Set (Set 0)
+    	DSFloor.bind(commandBuffer, PToon, 1, currentImage);
 
 		vkCmdDrawIndexed(commandBuffer,
 				static_cast<uint32_t>(MFloor.indices.size()), 1, 0, 0, 0);
-*/
+
 
 		// binds the pipeline
 		PToon.bind(commandBuffer);
@@ -339,9 +339,6 @@ protected:
 		const float ROT_SPEED = glm::radians(120.0f);
 		const float MOVE_SPEED = 2.0f;
 		
-		static float ShowCloud = 1.0f;
-		static float ShowTexture = 1.0f;
-		
 		// The Fly model update proc.
 		ViewMatrix = glm::rotate(glm::mat4(1), ROT_SPEED * r.x * deltaT,
 								 glm::vec3(1, 0, 0)) * ViewMatrix;
@@ -382,7 +379,7 @@ protected:
     // Update FLoor uniforms
     
     ToonUniformBufferObject uboFloor{};
-    uboFloor.mMat = glm::rotate(glm::mat4(1.0f), glm::radians(45.0f), glm::vec3(1.0f,1.0f,0.0f));  // Adjust as needed
+    uboFloor.mMat = glm::mat4(1.0f);  // Adjust as needed
     uboFloor.mvpMat = ViewPrj * glm::mat4(1.0f);  // Adjust model matrix as needed
     uboFloor.nMat = glm::transpose(glm::inverse(uboFloor.mMat));
     DSFloor.map(currentImage, &uboFloor, 0);

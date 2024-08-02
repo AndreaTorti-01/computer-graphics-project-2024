@@ -23,25 +23,53 @@ layout(set = 1, binding = 2) uniform BlinnParUniformBufferObject {
 	float Pow;
 } mubo;
 
-layout(set = 1, binding = 1) uniform sampler2D tex;
+layout(set = 1, binding = 1) uniform sampler2D texSampler;
+
+
+vec3 BRDF(vec3 V, vec3 N, vec3 L, vec3 Md, vec3 Ms) {
+
+	vec3 Diffuse = Md * clamp(dot(N, L),0.0,1.0);
+
+  float index = clamp(dot(N,L),0.0,1.0);
+
+  if (index <= 0.0) Diffuse = vec3(0.0);
+  else if (index > 0   && index <= 0.1) Diffuse = Md * index * 1.5;
+  else if (index > 0.1 && index <= 0.7) Diffuse = Md * 0.15;
+  else if (index > 0.7 && index <= 0.8) Diffuse = Md * (((index - 0.7) * 8.5) + 0.15);
+  else Diffuse = Md;
+
+	vec3 Specular = Ms * vec3(pow(clamp(dot(V, -reflect(L, N)),0.0,1.0), 200.0f)); 
+
+  index = clamp(dot(V, -reflect(L, N)),0.0,1.0);
+
+  if (index <= 0.9) Specular = vec3(0.0);
+  else if (index > 0.9 && index <= 0.95) Specular = Ms * ((index - 0.9) * 20);
+  else Specular = Ms;
+
+	return (Diffuse + Specular);
+}
 
 // The main shader, implementing a simple Blinn + Lambert + constant Ambient BRDF model
 // The scene is lit by a single Spot Light
 void main() {
 	vec3 Norm = normalize(fragNorm);
 	vec3 EyeDir = normalize(gubo.eyePos - fragPos);
-	
-	vec3 lightDir = normalize(gubo.lightDir);
+	vec3 Albedo = texture(texSampler, fragUV).rgb;
+	vec3 lightDir = gubo.lightDir;
 	vec3 lightColor = gubo.lightColor.rgb;
 
-	vec3 Diffuse = texture(tex, fragUV).rgb * 0.975f * max(dot(Norm, lightDir),0.0);
-	vec3 Specular = vec3(pow(max(dot(Norm, normalize(lightDir + EyeDir)),0.0), mubo.Pow));
-	vec3 Ambient = texture(tex, fragUV).rgb * 0.025f;
+	const vec3 cxp = vec3(1.0,0.5,0.5) * 0.15;
+	const vec3 cxn = vec3(0.9,0.6,0.4) * 0.15;
+	const vec3 cyp = vec3(0.3,1.0,1.0) * 0.15;
+	const vec3 cyn = vec3(0.5,0.5,0.5) * 0.15;
+	const vec3 czp = vec3(0.8,0.2,0.4) * 0.15;
+	const vec3 czn = vec3(0.3,0.6,0.7) * 0.15;
 	
-	vec3 col  = (Diffuse + Specular) * lightColor + Ambient;
+	vec3 Ambient =((Norm.x > 0 ? cxp : cxn) * (Norm.x * Norm.x) +
+				   (Norm.y > 0 ? cyp : cyn) * (Norm.y * Norm.y) +
+				   (Norm.z > 0 ? czp : czn) * (Norm.z * Norm.z)) * Albedo;
+
+	vec3 DiffSpec = BRDF(EyeDir, Norm, lightDir, Albedo, vec3(1.0f));
 	
-	outColor = vec4(col, 1.0f);
-//	outColor = vec4(gubo.eyePos/5.0+vec3(0.5),1.0);
-//	outColor = vec4(0.5*Norm+vec3(0.5),1.0);
-//	outColor = vec4(fragPos/5.0+vec3(0.5),1.0);
+	outColor = vec4(DiffSpec * lightColor.rgb + Ambient, 1.0f);
 }
