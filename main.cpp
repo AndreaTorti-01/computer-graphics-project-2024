@@ -36,6 +36,14 @@ struct GenericVertex
 	glm::vec2 UV;
 };
 
+struct NormalMapVertex
+{
+	glm::vec3 pos;
+	glm::vec3 norm;
+	glm::vec2 UV;
+	glm::vec4 tan;
+};
+
 struct SkyBoxVertex
 {
 	glm::vec3 pos;
@@ -46,20 +54,20 @@ class Application : public BaseProject
 {
 protected:
 	// Descriptor Layouts ["classes" of what will be passed to the shaders]
-	DescriptorSetLayout DSLGlobal, DSLSkyBox, DSLToon, DSLBW; // For Global values
+	DescriptorSetLayout DSLGlobal, DSLSkyBox, DSLToon, DSLBW, DSLToonNormal; // For Global values
 
 	// Vertex formats
-	VertexDescriptor VDGeneric, VDSkyBox;
+	VertexDescriptor VDGeneric, VDSkyBox, VDNormalMap;
 
 	// Pipelines [Shader couples]
-	Pipeline PToon, PBW, PSkyBox;
+	Pipeline PToon, PBW, PSkyBox, PToonNormal;
 
 	// Scenes and texts
 	TextMaker txt;
 
 	// Models, textures and Descriptor Sets (values assigned to the uniforms)
 	Model MCar, MMike, MSkyBox, MFloor;
-	Texture TGeneric, TMike, TSkyBox;
+	Texture TGeneric, TMike, TSkyBox, TFloor, TFloorNormal, TCar, TCarNormal;
 
 	DescriptorSet DSGlobal, DSCar, DSMike, DSSkyBox, DSFloor;
 
@@ -110,35 +118,53 @@ protected:
 						  {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1},
 						  {2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(GlobalUniformBufferObject), 1}});
 
-		DSLSkyBox.init(this, {{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, sizeof(SkyBoxUniformBufferObject), 1},
-							  {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1},});
+		DSLToonNormal.init(this, {{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(ToonUniformBufferObject), 1},
+								  {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1},
+								  {2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1},
+								  {3, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(GlobalUniformBufferObject), 1}});
+
+		DSLSkyBox.init(this, {
+								 {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, sizeof(SkyBoxUniformBufferObject), 1},
+								 {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1},
+							 });
 
 		// Vertex descriptors
 		//
-		VDGeneric.init(this, {{0, sizeof(GenericVertex), VK_VERTEX_INPUT_RATE_VERTEX}}, 
-		{{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(GenericVertex, pos), sizeof(glm::vec3), POSITION},
-		 {0, 1, VK_FORMAT_R32G32B32_SFLOAT, offsetof(GenericVertex, norm), sizeof(glm::vec3), NORMAL},
-		 {0, 2, VK_FORMAT_R32G32_SFLOAT, offsetof(GenericVertex, UV), sizeof(glm::vec2), UV}});
+		VDGeneric.init(this, {{0, sizeof(GenericVertex), VK_VERTEX_INPUT_RATE_VERTEX}},
+					   {{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(GenericVertex, pos), sizeof(glm::vec3), POSITION},
+						{0, 1, VK_FORMAT_R32G32B32_SFLOAT, offsetof(GenericVertex, norm), sizeof(glm::vec3), NORMAL},
+						{0, 2, VK_FORMAT_R32G32_SFLOAT, offsetof(GenericVertex, UV), sizeof(glm::vec2), UV}});
+
+		VDNormalMap.init(this, {{0, sizeof(NormalMapVertex), VK_VERTEX_INPUT_RATE_VERTEX}},
+						 {{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(NormalMapVertex, pos), sizeof(glm::vec3), POSITION},
+						  {0, 1, VK_FORMAT_R32G32B32_SFLOAT, offsetof(NormalMapVertex, norm), sizeof(glm::vec3), NORMAL},
+						  {0, 2, VK_FORMAT_R32G32_SFLOAT, offsetof(NormalMapVertex, UV), sizeof(glm::vec2), UV},
+						  {0, 3, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(NormalMapVertex, tan), sizeof(glm::vec4), TANGENT}});
 
 		VDSkyBox.init(this, {{0, sizeof(SkyBoxVertex), VK_VERTEX_INPUT_RATE_VERTEX}}, {{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(SkyBoxVertex, pos), sizeof(glm::vec3), POSITION}});
 
 		// Pipelines [Shader couples]
 		PToon.init(this, &VDGeneric, "shaders/Vert.spv", "shaders/ToonFrag.spv", {&DSLGlobal, &DSLToon});
 		PBW.init(this, &VDGeneric, "shaders/Vert.spv", "shaders/BWFrag.spv", {&DSLGlobal, &DSLBW});
+		PToonNormal.init(this, &VDNormalMap, "shaders/NormalMapVert.spv", "shaders/ToonNormalFrag.spv", {&DSLGlobal, &DSLToonNormal});
 		PSkyBox.init(this, &VDSkyBox, "shaders/SkyBoxVert.spv", "shaders/SkyBoxFrag.spv", {&DSLSkyBox});
 		PSkyBox.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, false);
 
 		// Create Models
-		MCar.init(this, &VDGeneric, "models/Car.mgcg", MGCG);
+		MCar.init(this, &VDNormalMap, "models/Car.gltf", GLTF);
 		MMike.init(this, &VDGeneric, "models/Mike.obj", OBJ);
 		MSkyBox.init(this, &VDSkyBox, "models/SkyBox.obj", OBJ);
-		MFloor.init(this, &VDGeneric, "models/Floor.obj", OBJ);
+		MFloor.init(this, &VDNormalMap, "models/Floor.obj", OBJ);
 
 		// Create the textures
 
 		TGeneric.init(this, "textures/Textures.png");
 		TMike.init(this, "textures/T_Zebra.png");
 		TSkyBox.init(this, "textures/T_SkyBox.jpg");
+		TFloor.init(this, "textures/T_Floor.jpg");
+		TFloorNormal.init(this, "textures/T_FloorNormal.png", VK_FORMAT_R8G8B8A8_UNORM);
+		TCar.init(this, "textures/T_Car.jpg");
+		TCarNormal.init(this, "textures/T_CarNormal.jpg", VK_FORMAT_R8G8B8A8_UNORM);
 
 		// Descriptor pool sizes
 		// WARNING!!!!!!!!
@@ -169,12 +195,13 @@ protected:
 		// This creates a new pipeline (with the current surface), using its shaders
 		PBW.create();
 		PToon.create();
+		PToonNormal.create();
 		PSkyBox.create();
 
 		// Here you define the data set
-		DSCar.init(this, &DSLToon, {&TGeneric});
+		DSCar.init(this, &DSLToonNormal, {&TCar, &TCarNormal});
 		DSMike.init(this, &DSLBW, {&TMike});
-		DSFloor.init(this, &DSLToon, {&TGeneric});
+		DSFloor.init(this, &DSLToonNormal, {&TFloor, &TFloorNormal});
 		DSSkyBox.init(this, &DSLSkyBox, {&TSkyBox});
 		DSGlobal.init(this, &DSLGlobal, {});
 
@@ -189,6 +216,7 @@ protected:
 		// Cleanup pipelines
 		PToon.cleanup();
 		PSkyBox.cleanup();
+		PToonNormal.cleanup();
 		PBW.cleanup();
 
 		DSCar.cleanup();
@@ -208,7 +236,11 @@ protected:
 	{
 		TGeneric.cleanup();
 		TMike.cleanup();
+		TFloor.cleanup();
+		TFloorNormal.cleanup();
 		TSkyBox.cleanup();
+		TCar.cleanup();
+		TCarNormal.cleanup();
 
 		MCar.cleanup();
 		MMike.cleanup();
@@ -218,12 +250,14 @@ protected:
 		// Cleanup descriptor set layouts
 		DSLToon.cleanup();
 		DSLBW.cleanup();
+		DSLToonNormal.cleanup();
 		DSLSkyBox.cleanup();
 		DSLGlobal.cleanup();
 
 		// Destroies the pipelines
 		PToon.destroy();
 		PBW.destroy();
+		PToonNormal.destroy();
 		PSkyBox.destroy();
 
 		txt.localCleanup();
@@ -236,19 +270,19 @@ protected:
 	void populateCommandBuffer(VkCommandBuffer commandBuffer, int currentImage)
 	{
 
-		PToon.bind(commandBuffer);
+		PToonNormal.bind(commandBuffer);
 		MFloor.bind(commandBuffer);
-		DSGlobal.bind(commandBuffer, PToon, 0, currentImage); // The Global Descriptor Set (Set 0)
-		DSFloor.bind(commandBuffer, PToon, 1, currentImage);
+		DSGlobal.bind(commandBuffer, PToonNormal, 0, currentImage); // The Global Descriptor Set (Set 0)
+		DSFloor.bind(commandBuffer, PToonNormal, 1, currentImage);
 
 		vkCmdDrawIndexed(commandBuffer,
 						 static_cast<uint32_t>(MFloor.indices.size()), 1, 0, 0, 0);
 
 		// binds the pipeline
-		PToon.bind(commandBuffer);
+		PToonNormal.bind(commandBuffer);
 		MCar.bind(commandBuffer);
-		DSGlobal.bind(commandBuffer, PToon, 0, currentImage); // The Global Descriptor Set (Set 0)
-		DSCar.bind(commandBuffer, PToon, 1, currentImage);	  // The Material and Position Descriptor Set (Set 1)
+		DSGlobal.bind(commandBuffer, PToonNormal, 0, currentImage); // The Global Descriptor Set (Set 0)
+		DSCar.bind(commandBuffer, PToonNormal, 1, currentImage);	// The Material and Position Descriptor Set (Set 1)
 
 		vkCmdDrawIndexed(commandBuffer,
 						 static_cast<uint32_t>(MCar.indices.size()), 1, 0, 0, 0);
@@ -324,30 +358,36 @@ protected:
 		const float WHEELBASE = 2.0f;
 
 		// Update car speed
-		if (m.z > 0.1f) {
+		if (m.z > 0.1f)
+		{
 			carSpeed = glm::min(carSpeed + ACCELERATION * deltaT, MAX_SPEED);
 		}
-		else if (m.z < -0.1f) {
+		else if (m.z < -0.1f)
+		{
 			carSpeed = glm::max(carSpeed - ACCELERATION * deltaT, -MAX_SPEED);
 		}
-		else {
+		else
+		{
 			// Apply deceleration when no input
-			carSpeed = carSpeed > 0 ? glm::max(carSpeed - DECELERATION * deltaT, 0.0f) :
-				carSpeed < 0 ? glm::min(carSpeed + DECELERATION * deltaT, 0.0f) : 0.0f;
+			carSpeed = carSpeed > 0 ? glm::max(carSpeed - DECELERATION * deltaT, 0.0f) : carSpeed < 0 ? glm::min(carSpeed + DECELERATION * deltaT, 0.0f)
+																									  : 0.0f;
 		}
 
 		// Update steering angle incrementally
 		float targetSteeringAngle = -MAX_STEERING_ANGLE * m.x;
 		float steeringDelta = STEERING_SPEED * deltaT;
-		if (currentSteeringAngle < targetSteeringAngle) {
+		if (currentSteeringAngle < targetSteeringAngle)
+		{
 			currentSteeringAngle = glm::min(currentSteeringAngle + steeringDelta, targetSteeringAngle);
 		}
-		else if (currentSteeringAngle > targetSteeringAngle) {
+		else if (currentSteeringAngle > targetSteeringAngle)
+		{
 			currentSteeringAngle = glm::max(currentSteeringAngle - steeringDelta, targetSteeringAngle);
 		}
 
 		// Update car position and rotation using Ackermann steering
-		if (std::abs(carSpeed) > 0.001f) {
+		if (std::abs(carSpeed) > 0.001f)
+		{
 			float turnRadius = WHEELBASE / std::tan(std::abs(currentSteeringAngle) + 1e-5);
 			float angularVelocity = carSpeed / turnRadius;
 
@@ -355,13 +395,30 @@ protected:
 			carPosition += glm::vec3(
 				std::cos(carRotation) * carSpeed * deltaT,
 				0.0f,
-				std::sin(carRotation) * carSpeed * deltaT
-			);
+				std::sin(carRotation) * carSpeed * deltaT);
+		}
+
+<<<<<<< Updated upstream
+		// Update car matrix
+		CarPos = glm::translate(glm::mat4(1.0f), carPosition) *
+			glm::rotate(glm::mat4(1.0f), -carRotation, glm::vec3(0.0f, 1.0f, 0.0f));
+=======
+		// Tilt the car based on amount of acceleration
+		float carTilt = 0.0f;
+		if (m.z > 0.1f)
+		{
+			carTilt = glm::radians(-5.0f); // Tilt backward when accelerating
+		}
+		else if (m.z < -0.1f)
+		{
+			carTilt = glm::radians(5.0f); // Tilt forward when decelerating
 		}
 
 		// Update car matrix
 		CarPos = glm::translate(glm::mat4(1.0f), carPosition) *
-			glm::rotate(glm::mat4(1.0f), -carRotation, glm::vec3(0.0f, 1.0f, 0.0f));
+				 glm::rotate(glm::mat4(1.0f), -carRotation, glm::vec3(0.0f, 1.0f, 0.0f)) *
+				 glm::rotate(glm::mat4(1.0f), carTilt, glm::vec3(0.0f, 0.0f, -1.0f));
+>>>>>>> Stashed changes
 		// Apply additional rotations to align the car model correctly
 		CarPos = glm::rotate(CarPos, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 		CarPos = glm::rotate(CarPos, glm::radians(270.0f), glm::vec3(0.0f, 0.0f, 1.0f));
@@ -379,13 +436,25 @@ protected:
 		glm::mat4 Mv = ViewMatrix;
 		glm::mat4 ViewPrj = M * Mv;
 
+<<<<<<< Updated upstream
+=======
+		// shake camera slightly at high speed
+		if (std::abs(carSpeed) > 0.9f * MAX_SPEED)
+		{
+			float shakeAmount = 0.004f * (std::abs(carSpeed) - 0.9f * MAX_SPEED) / (0.1f * MAX_SPEED);
+			ViewPrj = glm::translate(ViewPrj, glm::vec3(
+												  0.0f,
+												  shakeAmount * (std::sin(time * 50.0f) + std::cos(time * 47.0f)),
+												  shakeAmount * (std::cos(time * 53.0f) + std::sin(time * 59.0f))));
+		}
+
+>>>>>>> Stashed changes
 		// Update global uniforms
 		GlobalUniformBufferObject uboGlobal{};
 		uboGlobal.lightDir = glm::normalize(glm::vec3(
 			cos(glm::radians(135.0f)) * cos(cTime * angTurnTimeFact),
 			sin(glm::radians(135.0f)),
-			cos(glm::radians(135.0f)) * sin(cTime * angTurnTimeFact)
-		));
+			cos(glm::radians(135.0f)) * sin(cTime * angTurnTimeFact)));
 		uboGlobal.lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 		uboGlobal.eyePos = glm::vec3(glm::inverse(ViewMatrix) * glm::vec4(0, 0, 0, 1));
 		DSGlobal.map(currentImage, &uboGlobal, 0);
