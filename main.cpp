@@ -24,11 +24,13 @@ struct SkyBoxUniformBufferObject {
 	alignas(16) glm::mat4 mvpMat;  // Model-View-Projection matrix for skybox
 };
 
-// Global uniform buffer object for lighting and camera information
-struct GlobalUniformBufferObject {
-	alignas(16) glm::vec3 lightDir;   // Direction of the light
-	alignas(16) glm::vec4 lightColor; // Color of the light
-	alignas(16) glm::vec3 eyePos;     // Position of the camera
+#define NLIGHTS 2
+struct GlobalUniformBufferObject
+{
+	alignas(16) glm::vec3 lightDir[NLIGHTS];
+	alignas(16) glm::vec4 lightColor[NLIGHTS];
+	alignas(16) glm::vec3 eyePos;
+	alignas(4)  int type[NLIGHTS]; // 0 global, 1 point
 };
 
 // Vertex structure for generic objects
@@ -66,7 +68,7 @@ protected:
 
 	// Models and textures
 	Model MCar, MMike, MSkyBox, MFloor;
-	Texture TGeneric, TMike, TSkyBox;
+	Texture TGeneric, TMike, TSkyBox, TFloor, TCar;
 
 	// Descriptor Sets
 	DescriptorSet DSGlobal, DSCar, DSSkyBox, DSFloor;
@@ -142,14 +144,14 @@ protected:
 			{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(SkyBoxVertex, pos), sizeof(glm::vec3), POSITION}
 			});
 
-		// Initialize Pipelines
-		PToon.init(this, &VDGeneric, "shaders/Vert.spv", "shaders/ToonFrag.spv", { &DSLGlobal, &DSLToon });
-		PBW.init(this, &VDGeneric, "shaders/Vert.spv", "shaders/BWFrag.spv", { &DSLGlobal, &DSLBW });
-		PSkyBox.init(this, &VDSkyBox, "shaders/SkyBoxVert.spv", "shaders/SkyBoxFrag.spv", { &DSLSkyBox });
+		// Pipelines [Shader couples]
+		PToon.init(this, &VDGeneric, "shaders/Vert.spv", "shaders/ToonFrag.spv", {&DSLGlobal, &DSLToon});
+		PBW.init(this, &VDGeneric, "shaders/Vert.spv", "shaders/BWFrag.spv", {&DSLGlobal, &DSLBW});
+		PSkyBox.init(this, &VDSkyBox, "shaders/SkyBoxVert.spv", "shaders/SkyBoxFrag.spv", {&DSLSkyBox});
 		PSkyBox.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, false);
 
-		// Initialize Models
-		MCar.init(this, &VDGeneric, "models/Car.mgcg", MGCG);
+		// Create Models
+		MCar.init(this, &VDGeneric, "models/Car.gltf", GLTF);
 		MMike.init(this, &VDGeneric, "models/Mike.obj", OBJ);
 		MSkyBox.init(this, &VDSkyBox, "models/SkyBox.obj", OBJ);
 		MFloor.init(this, &VDGeneric, "models/Floor.obj", OBJ);
@@ -158,6 +160,9 @@ protected:
 		TGeneric.init(this, "textures/Textures.png");
 		TMike.init(this, "textures/T_Zebra.png");
 		TSkyBox.init(this, "textures/T_SkyBox.jpg");
+		TFloor.init(this, "textures/T_Floor.jpg");
+		TCar.init(this, "textures/T_Car.jpg");
+
 
 		// Set Descriptor Pool Sizes
 		DPSZs.uniformBlocksInPool = 10 + MAX_MIKE_INSTANCES;
@@ -185,12 +190,12 @@ protected:
 		PSkyBox.create();
 
 		// Initialize descriptor sets
-		DSCar.init(this, &DSLToon, { &TGeneric });
+		DSCar.init(this, &DSLToon, { &TCar });
 		DSMikes.resize(MAX_MIKE_INSTANCES);
 		for (int i = 0; i < MAX_MIKE_INSTANCES; ++i) {
 			DSMikes[i].init(this, &DSLBW, { &TMike });
 		}
-		DSFloor.init(this, &DSLToon, { &TGeneric });
+		DSFloor.init(this, &DSLToon, { &TFloor });
 		DSSkyBox.init(this, &DSLSkyBox, { &TSkyBox });
 		DSGlobal.init(this, &DSLGlobal, {});
 
@@ -219,7 +224,9 @@ protected:
 	void localCleanup() {
 		TGeneric.cleanup();
 		TMike.cleanup();
+		TFloor.cleanup();
 		TSkyBox.cleanup();
+		TCar.cleanup();
 
 		MCar.cleanup();
 		MMike.cleanup();
@@ -250,9 +257,11 @@ protected:
 		// Render Car
 		PToon.bind(commandBuffer);
 		MCar.bind(commandBuffer);
-		DSGlobal.bind(commandBuffer, PToon, 0, currentImage);
-		DSCar.bind(commandBuffer, PToon, 1, currentImage);
-		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MCar.indices.size()), 1, 0, 0, 0);
+		DSGlobal.bind(commandBuffer, PToon, 0, currentImage); // The Global Descriptor Set (Set 0)
+		DSCar.bind(commandBuffer, PToon, 1, currentImage);	// The Material and Position Descriptor Set (Set 1)
+
+		vkCmdDrawIndexed(commandBuffer,
+						 static_cast<uint32_t>(MCar.indices.size()), 1, 0, 0, 0);
 
 		// Render Mike instances
 		PBW.bind(commandBuffer);
@@ -284,7 +293,12 @@ protected:
 		float deltaT;
 		glm::vec3 m = glm::vec3(0.0f), r = glm::vec3(0.0f);
 		bool fire = false;
-		getSixAxis(deltaT, m, r, fire);
+
+		if(glfwGetKey(window, GLFW_KEY_C)){
+			glfwSetWindowShouldClose(window, 1 );
+			return;
+		}
+		getSixAxis(deltaT, m, r, fire); // Get mouse and keyboard input
 
 		// Time-related variables for light movement
 		static float autoTime = true;
@@ -341,7 +355,8 @@ protected:
 		);
 
 		// Update car position and rotation using Ackermann steering
-		if (std::abs(carSpeed) > 0.001f) {
+		if (std::abs(carSpeed) > 0.001f)
+		{
 			float turnRadius = WHEELBASE / std::tan(std::abs(currentSteeringAngle) + 1e-5);
 			float angularVelocity = carSpeed / turnRadius;
 
@@ -349,8 +364,18 @@ protected:
 			carPosition += glm::vec3(
 				std::cos(carRotation) * carSpeed * deltaT,
 				0.0f,
-				std::sin(carRotation) * carSpeed * deltaT
-			);
+				std::sin(carRotation) * carSpeed * deltaT);
+		}
+
+		// Tilt the car based on amount of acceleration
+		float carTilt = 0.0f;
+		if (m.z > 0.1f)
+		{
+			carTilt = glm::radians(-5.0f); // Tilt backward when accelerating
+		}
+		else if (m.z < -0.1f)
+		{
+			carTilt = glm::radians(5.0f); // Tilt forward when decelerating
 		}
 
 		// Tilt the car based on amount of acceleration
@@ -360,10 +385,8 @@ protected:
 		CarPos = glm::translate(glm::mat4(1.0f), carPosition) *
 			glm::rotate(glm::mat4(1.0f), -carRotation, glm::vec3(0.0f, 1.0f, 0.0f)) *
 			glm::rotate(glm::mat4(1.0f), carTilt, glm::vec3(0.0f, 0.0f, -1.0f)) *
-			glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) *
-			glm::rotate(glm::mat4(1.0f), glm::radians(270.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-
-		// Update Mike instances
+            glm::rotate(CarPos, glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+        // Update Mike instances
 		mikeSpawnTimer += deltaT;
 		if (mikeSpawnTimer >= 1.0f && mikes.size() < MAX_MIKE_INSTANCES) {
 			mikeSpawnTimer -= 1.0f;
@@ -412,20 +435,23 @@ protected:
 
 		// Update global uniforms
 		GlobalUniformBufferObject uboGlobal{};
-		uboGlobal.lightDir = glm::normalize(glm::vec3(
-			cos(glm::radians(135.0f)) * cos(cTime * angTurnTimeFact),
-			sin(glm::radians(135.0f)),
-			cos(glm::radians(135.0f)) * sin(cTime * angTurnTimeFact)
-		));
-		uboGlobal.lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 		uboGlobal.eyePos = glm::vec3(glm::inverse(ViewMatrix) * glm::vec4(0, 0, 0, 1));
+
+		uboGlobal.lightDir[0] = glm::vec3 (0.0f, 0.0f, 0.0f);
+		uboGlobal.lightColor[0] = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+		uboGlobal.type[0] = 0;
+
+		uboGlobal.lightDir[1] = glm::normalize(glm::vec3(5.0f,4.0f,5.0f));
+		uboGlobal.lightColor[1] = glm::vec4(1.0f);
+		uboGlobal.type[1] = 1;
+
 		DSGlobal.map(currentImage, &uboGlobal, 0);
 
 		// Update Car uniforms
 		ToonUniformBufferObject uboCar{};
 		uboCar.mMat = CarPos;
 		uboCar.mvpMat = ViewPrj * uboCar.mMat;
-		uboCar.nMat = glm::inverse(glm::transpose(uboCar.mMat));
+		uboCar.nMat = glm::inverse(CarPos);	
 		DSCar.map(currentImage, &uboCar, 0);
 
 		// Update Mike uniforms

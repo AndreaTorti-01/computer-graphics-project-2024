@@ -420,7 +420,6 @@ protected:
 
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 		glfwWindowHint(GLFW_RESIZABLE, windowResizable);
-
 		window = glfwCreateWindow(windowWidth, windowHeight, windowTitle.c_str(), nullptr, nullptr);
 
 		glfwSetWindowUserPointer(window, this);

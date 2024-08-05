@@ -19,10 +19,6 @@ layout(set = 0, binding = 0) uniform BlinnUniformBufferObject {
 	vec3 eyePos;
 } gubo;
 
-layout(set = 1, binding = 2) uniform BlinnParUniformBufferObject {
-	float Pow;
-} mubo;
-
 layout(set = 1, binding = 1) uniform sampler2D texSampler;
 
 
