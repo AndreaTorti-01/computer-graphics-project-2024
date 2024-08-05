@@ -371,10 +371,13 @@ protected:
 		float carTilt = glm::radians(glm::clamp(m.z * -5.0f, -5.0f, 5.0f));
 
 		// Update car matrix
-		CarPos = glm::translate(glm::mat4(1.0f), carPosition) *
-			glm::rotate(glm::mat4(1.0f), -carRotation, glm::vec3(0.0f, 1.0f, 0.0f)) *
-			glm::rotate(glm::mat4(1.0f), carTilt, glm::vec3(0.0f, 0.0f, -1.0f)) *
-            glm::rotate(CarPos, glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+		CarPos = glm::translate(glm::mat4(1.0f), carPosition);
+		CarPos = glm::rotate(CarPos, -carRotation, glm::vec3(0.0f, 1.0f, 0.0f));
+		CarPos = glm::rotate(CarPos, -carTilt, glm::vec3(0.0f, 0.0f, 1.0f));
+		// rotate model by 90 degrees clockwise and scale it 3x
+		CarPos = glm::scale(CarPos, glm::vec3(3.0f, 3.0f, 3.0f));
+		CarPos = glm::rotate(CarPos, glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+
         // Update Mike instances
 		mikeSpawnTimer += deltaT;
 		if (mikeSpawnTimer >= 1.0f && mikes.size() < MAX_MIKE_INSTANCES) {
@@ -390,7 +393,7 @@ protected:
 			mike.lifetime += deltaT;
 
 			float distanceToPlayer = glm::length(carPosition - mike.position);
-			if (distanceToPlayer < 1.5f || mike.lifetime > 10.0f) {
+			if (distanceToPlayer < 1.5f) {
 				it = mikes.erase(it);
 			}
 			else {
@@ -399,7 +402,7 @@ protected:
 		}
 
 		// Camera position (static relative to the car)
-		glm::vec3 cameraOffset = glm::vec3(5.0f, 10.0f, 5.0f);
+		glm::vec3 cameraOffset = glm::vec3(5.0f, 15.0f, 5.0f);
 		glm::vec3 cameraPosition = carPosition + cameraOffset;
 
 		// Look at the car
