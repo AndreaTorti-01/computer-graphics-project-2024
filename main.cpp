@@ -3,6 +3,7 @@
 #include "modules/Starter.hpp"
 #include "modules/TextMaker.hpp"
 #include "modules/CarPosition.hpp"
+#include "modules/MikePosition.hpp"
 #include <random>
 #include <ctime>
 #include <algorithm>
@@ -47,12 +48,6 @@ struct SkyBoxVertex {
 	glm::vec3 pos;   // Position (only position is needed for skybox)
 };
 
-// Structure to represent an instance of Mike
-struct MikeInstance {
-	glm::vec3 position; // Position of Mike instance
-	float rotation;     // Rotation of Mike instance
-	bool isAboveFloor;  // Flag to indicate if Mike is above or below the floor
-};
 
 // Main application class
 class Application : public BaseProject {
@@ -311,6 +306,7 @@ protected:
 		const float MAX_SPEED = 8.0f;
 
 		update_car_position(CarPos, carPosition, carSpeed, currentSteeringAngle, carRotation, m, deltaT);
+		update_mike_positions(carPosition, mikes, mikeSpawnTimer, deltaT);
 
 		// Time-related variables for light movement
 		static float autoTime = true;
@@ -321,32 +317,7 @@ protected:
 			cTime = std::fmod(cTime + deltaT, turnTime);
 		}
 
-        // Update Mike instances
-		mikeSpawnTimer += deltaT;
-		if (mikeSpawnTimer >= 1.0f) {
-			mikeSpawnTimer -= 1.0f;
-			for (auto& mike : mikes) {
-				if (!mike.isAboveFloor) {
-					mike.position.y = 0.0f;
-					mike.isAboveFloor = true;
-					break;
-				}
-			}
-		}
-
-		for (auto& mike : mikes) {
-			if (mike.isAboveFloor) {
-				glm::vec3 dirToPlayer = glm::normalize(carPosition - mike.position);
-				mike.position += dirToPlayer * 2.0f * deltaT;
-				mike.rotation = std::atan2(dirToPlayer.x, dirToPlayer.z);
-
-				float distanceToPlayer = glm::length(carPosition - mike.position);
-				if (distanceToPlayer < 1.5f) {
-					mike.position.y = -10.0f;
-					mike.isAboveFloor = false;
-				}
-			}
-		}
+       
 
 		// Camera position (static relative to the car)
 		glm::vec3 cameraOffset = glm::vec3(5.0f, 15.0f, 5.0f);

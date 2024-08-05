@@ -10,7 +10,7 @@
 
 #include <chrono>
 
-void update_car_position(glm::mat4 &CarPos, glm::vec3 &carPosition, float &carSpeed, float &currentSteeringAngle, float &carRotation, glm::vec3 &m, float &deltaT)
+void update_car_position(glm::mat4 &CarPos, glm::vec3 &carPosition, float &carSpeed, float &currentSteeringAngle, float &carRotation, glm::vec3 &m, float deltaT)
 {
     // Car properties
 
