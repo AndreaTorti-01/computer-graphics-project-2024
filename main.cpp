@@ -2,9 +2,11 @@
 
 #include "modules/Starter.hpp"
 #include "modules/TextMaker.hpp"
+#include "modules/CarPosition.hpp"
 #include <random>
 #include <ctime>
 #include <algorithm>
+
 
 // Text to be displayed on screen
 std::vector<SingleText> outText = {
@@ -27,7 +29,7 @@ struct SkyBoxUniformBufferObject {
 #define NLIGHTS 2
 struct GlobalUniformBufferObject
 {
-	alignas(16) glm::vec3 lightDir[NLIGHTS];
+	alignas(16) glm::vec3 lightDir[NLIGHTS];  // in case of a point light, lightDir isn't it's direction, but the position
 	alignas(16) glm::vec4 lightColor[NLIGHTS];
 	alignas(16) glm::vec3 eyePos;
 	alignas(4)  int type[NLIGHTS]; // 0 global, 1 point
@@ -287,6 +289,7 @@ protected:
 
 	// Update uniform buffers
 	void updateUniformBuffer(uint32_t currentImage) {
+
 		static auto startTime = std::chrono::high_resolution_clock::now();
 		auto currentTime = std::chrono::high_resolution_clock::now();
 		float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
@@ -300,6 +303,14 @@ protected:
 		}
 		getSixAxis(deltaT, m, r, fire); // Get mouse and keyboard input
 
+		static glm::vec3 carPosition = glm::vec3(0.0f);
+    	static float carRotation = 0.0f;
+    	static float carSpeed = 0.0f;
+    	static float currentSteeringAngle = 0.0f;
+		const float MAX_SPEED = 8.0f;
+
+		update_car_position(CarPos, carPosition, carSpeed, currentSteeringAngle, carRotation, m, deltaT);
+
 		// Time-related variables for light movement
 		static float autoTime = true;
 		static float cTime = 0.0;
@@ -308,75 +319,6 @@ protected:
 		if (autoTime) {
 			cTime = std::fmod(cTime + deltaT, turnTime);
 		}
-
-		// Car properties
-		static glm::vec3 carPosition = glm::vec3(0.0f);
-		static float carRotation = 0.0f;
-		static float carSpeed = 0.0f;
-		static float currentSteeringAngle = 0.0f;
-		const float MAX_SPEED = 8.0f;
-		const float ACCELERATION = 5.0f;
-		const float DECELERATION = 20.0f;
-		const float MAX_STEERING_ANGLE = glm::radians(35.0f);
-		const float STEERING_SPEED = glm::radians(180.0f);
-		const float WHEELBASE = 2.0f;
-
-		// Update car speed
-		if (m.z > 0.1f) {
-			if (carSpeed < 0) {
-				// If moving backward and forward button is pressed, decelerate using DECELERATION
-				carSpeed = std::min(carSpeed + DECELERATION * deltaT, 0.0f);
-			}
-			else {
-				carSpeed = std::min(carSpeed + ACCELERATION * deltaT, MAX_SPEED);
-			}
-		}
-		else if (m.z < -0.1f) {
-			if (carSpeed > 0) {
-				// If moving forward and backward button is pressed, decelerate using DECELERATION
-				carSpeed = std::max(carSpeed - DECELERATION * deltaT, 0.0f);
-			}
-			else {
-				carSpeed = std::max(carSpeed - ACCELERATION * deltaT, -MAX_SPEED);
-			}
-		}
-		else {
-			// Apply natural deceleration when no input
-			carSpeed = carSpeed > 0 ? std::max(carSpeed - ACCELERATION * deltaT, 0.0f) :
-				carSpeed < 0 ? std::min(carSpeed + ACCELERATION * deltaT, 0.0f) : 0.0f;
-		}
-
-		// Update steering angle incrementally
-		float targetSteeringAngle = -MAX_STEERING_ANGLE * m.x;
-		float steeringDelta = STEERING_SPEED * deltaT;
-		currentSteeringAngle = glm::clamp(
-			currentSteeringAngle + glm::clamp(targetSteeringAngle - currentSteeringAngle, -steeringDelta, steeringDelta),
-			-MAX_STEERING_ANGLE, MAX_STEERING_ANGLE
-		);
-
-		// Update car position and rotation using Ackermann steering
-		if (std::abs(carSpeed) > 0.001f)
-		{
-			float turnRadius = WHEELBASE / std::tan(std::abs(currentSteeringAngle) + 1e-5);
-			float angularVelocity = carSpeed / turnRadius;
-
-			carRotation += angularVelocity * deltaT * glm::sign(currentSteeringAngle);
-			carPosition += glm::vec3(
-				std::cos(carRotation) * carSpeed * deltaT,
-				0.0f,
-				std::sin(carRotation) * carSpeed * deltaT);
-		}
-
-		// Tilt the car based on amount of acceleration
-		float carTilt = glm::radians(glm::clamp(m.z * -5.0f, -5.0f, 5.0f));
-
-		// Update car matrix
-		CarPos = glm::translate(glm::mat4(1.0f), carPosition);
-		CarPos = glm::rotate(CarPos, -carRotation, glm::vec3(0.0f, 1.0f, 0.0f));
-		CarPos = glm::rotate(CarPos, -carTilt, glm::vec3(0.0f, 0.0f, 1.0f));
-		// rotate model by 90 degrees clockwise and scale it 3x
-		CarPos = glm::scale(CarPos, glm::vec3(3.0f, 3.0f, 3.0f));
-		CarPos = glm::rotate(CarPos, glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f));
 
         // Update Mike instances
 		mikeSpawnTimer += deltaT;
@@ -429,11 +371,11 @@ protected:
 		GlobalUniformBufferObject uboGlobal{};
 		uboGlobal.eyePos = glm::vec3(glm::inverse(ViewMatrix) * glm::vec4(0, 0, 0, 1));
 
-		uboGlobal.lightDir[0] = glm::vec3 (0.0f, 0.0f, 0.0f);
+		uboGlobal.lightDir[0] = glm::vec3 (0.0f, -1.0f, 0.0f);
 		uboGlobal.lightColor[0] = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 		uboGlobal.type[0] = 0;
 
-		uboGlobal.lightDir[1] = glm::normalize(glm::vec3(5.0f,4.0f,5.0f));
+		uboGlobal.lightDir[1] = glm::vec3(5.0f,4.0f,5.0f);
 		uboGlobal.lightColor[1] = glm::vec4(1.0f);
 		uboGlobal.type[1] = 1;
 
