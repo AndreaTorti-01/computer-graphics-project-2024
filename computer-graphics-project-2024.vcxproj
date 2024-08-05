@@ -260,6 +260,8 @@
     <ClInclude Include="headers\stb_image_write.h" />
     <ClInclude Include="headers\tiny_gltf.h" />
     <ClInclude Include="headers\tiny_obj_loader.h" />
+    <ClInclude Include="modules\CarPosition.hpp" />
+    <ClInclude Include="modules\MikePosition.hpp" />
     <ClInclude Include="modules\Scene.hpp" />
     <ClInclude Include="modules\Starter.hpp" />
     <ClInclude Include="modules\TextMaker.hpp" />

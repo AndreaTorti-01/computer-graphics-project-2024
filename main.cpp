@@ -95,6 +95,18 @@ protected:
 	// Constants
 	static const int MAX_MIKE_INSTANCES = 15;
 
+	// Descriptor pool sizes
+	int totalUniformBlocks = 0;
+	int totalTextures = 0;
+	int totalSets = 0;
+
+	// RNG
+	std::random_device rd;
+
+	// mike spawn radii
+	float minRadius = 3.0f;
+	float maxRadius = 7.0f;
+
 	// Window parameters setup
 	void setWindowParameters() override {
 		windowWidth = 800;
@@ -109,6 +121,43 @@ protected:
 	void onWindowResize(int w, int h) override {
 		std::cout << "Window resized to: " << w << " x " << h << "\n";
 		Ar = static_cast<float>(w) / static_cast<float>(h);
+	}
+
+	// Add this new function to calculate descriptor pool sizes
+	void calculateDescriptorPoolSizes() {
+		// Global Uniform Buffer
+		totalUniformBlocks += 1;
+		totalSets += 1;
+
+		// Car
+		totalUniformBlocks += 1;
+		totalTextures += 1;
+		totalSets += 1;
+
+		// Mike instances
+		totalUniformBlocks += MAX_MIKE_INSTANCES;
+		totalTextures += MAX_MIKE_INSTANCES;
+		totalSets += MAX_MIKE_INSTANCES;
+
+		// Floor
+		totalUniformBlocks += 1;
+		totalTextures += 1;
+		totalSets += 1;
+
+		// Skybox
+		totalUniformBlocks += 1;
+		totalTextures += 1;
+		totalSets += 1;
+
+		// Add a small buffer for safety
+		totalUniformBlocks += 5;
+		totalTextures += 5;
+		totalSets += 5;
+
+		// Set the calculated values
+		DPSZs.uniformBlocksInPool = totalUniformBlocks;
+		DPSZs.texturesInPool = totalTextures;
+		DPSZs.setsInPool = totalSets;
 	}
 
 	// Initialization of local resources
@@ -161,10 +210,10 @@ protected:
 		TFloor.init(this, "textures/T_Floor.jpg");
 		TCar.init(this, "textures/T_Car.jpg");
 
-		// Set Descriptor Pool Sizes
-		DPSZs.uniformBlocksInPool = 50 + MAX_MIKE_INSTANCES;
-		DPSZs.texturesInPool = 50 + MAX_MIKE_INSTANCES;
-		DPSZs.setsInPool = 50 + MAX_MIKE_INSTANCES;
+		calculateDescriptorPoolSizes();
+
+		// Initialize RNG
+		std::mt19937 rng(rd());
 
 		// Initialize text
 		txt.init(this, &outText);
@@ -174,13 +223,9 @@ protected:
 		CarPos = glm::rotate(glm::rotate(glm::mat4(1), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
 			glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
-		// Initialize random number generator
-		rng.seed(static_cast<unsigned int>(std::time(nullptr)));
-		uniformDist = std::uniform_real_distribution<float>(-10.0f, 10.0f);
-
 		// Initialize Mike instances
 		for (int i = 0; i < MAX_MIKE_INSTANCES; ++i) {
-			mikes.push_back({ glm::vec3(uniformDist(rng), -10.0f, uniformDist(rng)), 0.0f, false });
+			mikes.push_back({ glm::vec3(0.0f, -10.0f, 0.0f), 0.0f, false });
 		}
 	}
 
@@ -300,13 +345,13 @@ protected:
 		getSixAxis(deltaT, m, r, fire);
 
 		static glm::vec3 carPosition = glm::vec3(0.0f);
-    	static float carRotation = 0.0f;
-    	static float carSpeed = 0.0f;
-    	static float currentSteeringAngle = 0.0f;
+		static float carRotation = 0.0f;
+		static float carSpeed = 0.0f;
+		static float currentSteeringAngle = 0.0f;
 		const float MAX_SPEED = 8.0f;
 
 		update_car_position(CarPos, carPosition, carSpeed, currentSteeringAngle, carRotation, m, deltaT);
-		update_mike_positions(carPosition, mikes, mikeSpawnTimer, deltaT);
+		update_mike_positions(carPosition, mikes, mikeSpawnTimer, deltaT, rng, minRadius, maxRadius);
 
 		// Time-related variables for light movement
 		static float autoTime = true;
@@ -317,7 +362,7 @@ protected:
 			cTime = std::fmod(cTime + deltaT, turnTime);
 		}
 
-       
+
 
 		// Camera position (static relative to the car)
 		glm::vec3 cameraOffset = glm::vec3(5.0f, 15.0f, 5.0f);
@@ -347,11 +392,11 @@ protected:
 		GlobalUniformBufferObject uboGlobal{};
 		uboGlobal.eyePos = glm::vec3(glm::inverse(ViewMatrix) * glm::vec4(0, 0, 0, 1));
 
-		uboGlobal.lightDir[0] = glm::vec3 (0.0f, -1.0f, 0.0f);
+		uboGlobal.lightDir[0] = glm::vec3(0.0f, -1.0f, 0.0f);
 		uboGlobal.lightColor[0] = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 		uboGlobal.type[0] = 0;
 
-		uboGlobal.lightDir[1] = glm::vec3(5.0f,4.0f,5.0f);
+		uboGlobal.lightDir[1] = glm::vec3(5.0f, 4.0f, 5.0f);
 		uboGlobal.lightColor[1] = glm::vec4(1.0f);
 		uboGlobal.type[1] = 1;
 

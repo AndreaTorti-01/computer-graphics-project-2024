@@ -8,41 +8,52 @@
 
 #include <chrono>
 #include <vector>
-
+#include <random> // Include random number generation library
 
 // Structure to represent an instance of Mike
 struct MikeInstance {
-	glm::vec3 position; // Position of Mike instance
-	float rotation;     // Rotation of Mike instance
-	bool isAboveFloor;  // Flag to indicate if Mike is above or below the floor
+    glm::vec3 position; // Position of Mike instance
+    float rotation;     // Rotation of Mike instance
+    bool isAboveFloor;  // Flag to indicate if Mike is above or below the floor
 };
 
+// Function to generate a random position around the car
+glm::vec3 generateRandomPosition(const glm::vec3& carPosition, const float minRadius, const float maxRadius, std::mt19937& rng) {
+    std::uniform_real_distribution<float> distRadius(minRadius, maxRadius);
+    std::uniform_real_distribution<float> distAngle(0.0f, 2.0f * glm::pi<float>());
 
-void update_mike_positions(glm::vec3 &carPosition, std::vector<MikeInstance> &mikes, float &mikeSpawnTimer, float deltaT){
-     // Update Mike instances
-		mikeSpawnTimer += deltaT;
-		if (mikeSpawnTimer >= 1.0f) {
-			mikeSpawnTimer -= 1.0f;
-			for (auto& mike : mikes) {
-				if (!mike.isAboveFloor) {
-					mike.position.y = 0.0f;
-					mike.isAboveFloor = true;
-					break;
-				}
-			}
-		}
+    float radius = distRadius(rng);
+    float angle = distAngle(rng);
 
-		for (auto& mike : mikes) {
-			if (mike.isAboveFloor) {
-				glm::vec3 dirToPlayer = glm::normalize(carPosition - mike.position);
-				mike.position += dirToPlayer * 2.0f * deltaT;
-				mike.rotation = std::atan2(dirToPlayer.x, dirToPlayer.z);
+    glm::vec3 offset(radius * cos(angle), 0.0f, radius * sin(angle));
+    return carPosition + offset;
+}
 
-				float distanceToPlayer = glm::length(carPosition - mike.position);
-				if (distanceToPlayer < 1.5f) {
-					mike.position.y = -10.0f;
-					mike.isAboveFloor = false;
-				}
-			}
-		}
+void update_mike_positions(const glm::vec3& carPosition, std::vector<MikeInstance>& mikes, float& mikeSpawnTimer, const float deltaT, std::mt19937& rng, const float minRadius, const float maxRadius) {
+    // Update Mike instances
+    mikeSpawnTimer += deltaT;
+    if (mikeSpawnTimer >= 1.0f) {
+        mikeSpawnTimer -= 1.0f;
+        for (auto& mike : mikes) {
+            if (!mike.isAboveFloor) {
+                mike.position = generateRandomPosition(carPosition, minRadius, maxRadius, rng); // Generate random position
+                mike.isAboveFloor = true;
+                break;
+            }
+        }
+    }
+
+    for (auto& mike : mikes) {
+        if (mike.isAboveFloor) {
+            glm::vec3 dirToPlayer = glm::normalize(carPosition - mike.position);
+            mike.position += dirToPlayer * 2.0f * deltaT;
+            mike.rotation = std::atan2(dirToPlayer.x, dirToPlayer.z);
+
+            float distanceToPlayer = glm::length(carPosition - mike.position);
+            if (distanceToPlayer < 1.5f) {
+                mike.position.y = -10.0f;
+                mike.isAboveFloor = false;
+            }
+        }
+    }
 }
