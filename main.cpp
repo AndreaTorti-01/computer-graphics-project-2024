@@ -201,13 +201,13 @@ protected:
 		MCar.init(this, &VDGeneric, "models/Car.gltf", GLTF);
 		MMike.init(this, &VDGeneric, "models/Mike.obj", OBJ);
 		MSkyBox.init(this, &VDSkyBox, "models/SkyBox.obj", OBJ);
-		MFloor.init(this, &VDGeneric, "models/Floor.obj", OBJ);
+		MFloor.init(this, &VDGeneric, "models/newFloor.obj", OBJ);
 
 		// Initialize Textures
 		TGeneric.init(this, "textures/Textures.png");
 		TMike.init(this, "textures/T_Zebra.png");
 		TSkyBox.init(this, "textures/T_SkyBox.jpg");
-		TFloor.init(this, "textures/T_Floor.jpg");
+		TFloor.init(this, "textures/TCom_Pavement_TerracottaAntique_2K_albedo.jpg");
 		TCar.init(this, "textures/T_Car.jpg");
 
 		calculateDescriptorPoolSizes();
@@ -330,6 +330,7 @@ protected:
 
 	// Update uniform buffers
 	void updateUniformBuffer(uint32_t currentImage) {
+		const float floorDiam = 32.0f; // multiple of 2
 
 		static auto startTime = std::chrono::high_resolution_clock::now();
 		auto currentTime = std::chrono::high_resolution_clock::now();
@@ -350,8 +351,8 @@ protected:
 		static float currentSteeringAngle = 0.0f;
 		const float MAX_SPEED = 8.0f;
 
-		update_car_position(CarPos, carPosition, carSpeed, currentSteeringAngle, carRotation, m, deltaT);
-		update_mike_positions(carPosition, mikes, mikeSpawnTimer, deltaT, rng, minRadius, maxRadius);
+		update_car_position(CarPos, carPosition, carSpeed, currentSteeringAngle, carRotation, m, deltaT, floorDiam);
+		update_mike_positions(carPosition, mikes, mikeSpawnTimer, deltaT, rng, minRadius, maxRadius, floorDiam);
 
 		// Time-related variables for light movement
 		static float autoTime = true;
@@ -361,8 +362,6 @@ protected:
 		if (autoTime) {
 			cTime = std::fmod(cTime + deltaT, turnTime);
 		}
-
-
 
 		// Camera position (static relative to the car)
 		glm::vec3 cameraOffset = glm::vec3(5.0f, 15.0f, 5.0f);
@@ -421,9 +420,10 @@ protected:
 
 		// Update Floor uniforms
 		ToonUniformBufferObject uboFloor{};
-		uboFloor.mMat = glm::mat4(1.0f);
-		uboFloor.mvpMat = ViewPrj * glm::mat4(1.0f);
+		uboFloor.mMat = glm::scale(glm::mat4(1.0f), glm::vec3(floorDiam));
+		uboFloor.mvpMat = ViewPrj * uboFloor.mMat;
 		uboFloor.nMat = glm::transpose(glm::inverse(uboFloor.mMat));
+
 		DSFloor.map(currentImage, &uboFloor, 0);
 
 		// Update Skybox uniforms

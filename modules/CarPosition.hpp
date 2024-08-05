@@ -10,7 +10,7 @@
 
 #include <chrono>
 
-void update_car_position(glm::mat4 &CarPos, glm::vec3 &carPosition, float &carSpeed, float &currentSteeringAngle, float &carRotation, glm::vec3 &m, float deltaT)
+void update_car_position(glm::mat4& CarPos, glm::vec3& carPosition, float& carSpeed, float& currentSteeringAngle, float& carRotation, glm::vec3& m, const float deltaT, const float floordiam)
 {
     // Car properties
 
@@ -72,6 +72,11 @@ void update_car_position(glm::mat4 &CarPos, glm::vec3 &carPosition, float &carSp
             0.0f,
             std::sin(carRotation) * carSpeed * deltaT);
     }
+
+    // Constrain the car position to the floor size
+    const float floorDiamAdj = (floordiam - 1.0f) / 2.0f;
+    carPosition.x = glm::clamp(carPosition.x, -floorDiamAdj, floorDiamAdj);
+    carPosition.z = glm::clamp(carPosition.z, -floorDiamAdj, floorDiamAdj);
 
     // Tilt the car based on amount of acceleration
     float carTilt = glm::radians(glm::clamp(m.z * -5.0f, -5.0f, 5.0f));
