@@ -167,9 +167,9 @@ protected:
 		TCar.init(this, "textures/T_Car.jpg");
 
 		// Set Descriptor Pool Sizes
-		DPSZs.uniformBlocksInPool = 10 + MAX_MIKE_INSTANCES;
-		DPSZs.texturesInPool = 10 + MAX_MIKE_INSTANCES;
-		DPSZs.setsInPool = 10 + MAX_MIKE_INSTANCES;
+		DPSZs.uniformBlocksInPool = 50 + MAX_MIKE_INSTANCES;
+		DPSZs.texturesInPool = 50 + MAX_MIKE_INSTANCES;
+		DPSZs.setsInPool = 50 + MAX_MIKE_INSTANCES;
 
 		// Initialize text
 		txt.init(this, &outText);
@@ -303,14 +303,6 @@ protected:
 			return;
 		}
 		getSixAxis(deltaT, m, r, fire);
-
-		static glm::vec3 carPosition = glm::vec3(0.0f);
-    	static float carRotation = 0.0f;
-    	static float carSpeed = 0.0f;
-    	static float currentSteeringAngle = 0.0f;
-		const float MAX_SPEED = 8.0f;
-
-		update_car_position(CarPos, carPosition, carSpeed, currentSteeringAngle, carRotation, m, deltaT);
 
 		static glm::vec3 carPosition = glm::vec3(0.0f);
     	static float carRotation = 0.0f;
