@@ -95,7 +95,7 @@ protected:
 	std::uniform_real_distribution<float> uniformDist;
 
 	// Constants
-	static const int MAX_MIKE_INSTANCES = 50;
+	static const int MAX_MIKE_INSTANCES = 15;
 
 	// Window parameters setup
 	void setWindowParameters() override {
@@ -365,17 +365,6 @@ protected:
 				std::cos(carRotation) * carSpeed * deltaT,
 				0.0f,
 				std::sin(carRotation) * carSpeed * deltaT);
-		}
-
-		// Tilt the car based on amount of acceleration
-		float carTilt = 0.0f;
-		if (m.z > 0.1f)
-		{
-			carTilt = glm::radians(-5.0f); // Tilt backward when accelerating
-		}
-		else if (m.z < -0.1f)
-		{
-			carTilt = glm::radians(5.0f); // Tilt forward when decelerating
 		}
 
 		// Tilt the car based on amount of acceleration
