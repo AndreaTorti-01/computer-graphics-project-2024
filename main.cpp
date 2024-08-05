@@ -48,7 +48,8 @@ struct SkyBoxVertex {
 // Structure to represent an instance of Mike
 struct MikeInstance {
 	glm::vec3 position; // Position of Mike instance
-	float lifetime;     // Lifetime of Mike instance
+	float rotation;     // Rotation of Mike instance
+	bool isAboveFloor;  // Flag to indicate if Mike is above or below the floor
 };
 
 // Main application class
@@ -145,9 +146,9 @@ protected:
 			});
 
 		// Pipelines [Shader couples]
-		PToon.init(this, &VDGeneric, "shaders/Vert.spv", "shaders/ToonFrag.spv", {&DSLGlobal, &DSLToon});
-		PBW.init(this, &VDGeneric, "shaders/Vert.spv", "shaders/BWFrag.spv", {&DSLGlobal, &DSLBW});
-		PSkyBox.init(this, &VDSkyBox, "shaders/SkyBoxVert.spv", "shaders/SkyBoxFrag.spv", {&DSLSkyBox});
+		PToon.init(this, &VDGeneric, "shaders/Vert.spv", "shaders/ToonFrag.spv", { &DSLGlobal, &DSLToon });
+		PBW.init(this, &VDGeneric, "shaders/Vert.spv", "shaders/BWFrag.spv", { &DSLGlobal, &DSLBW });
+		PSkyBox.init(this, &VDSkyBox, "shaders/SkyBoxVert.spv", "shaders/SkyBoxFrag.spv", { &DSLSkyBox });
 		PSkyBox.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, false);
 
 		// Create Models
@@ -162,7 +163,6 @@ protected:
 		TSkyBox.init(this, "textures/T_SkyBox.jpg");
 		TFloor.init(this, "textures/T_Floor.jpg");
 		TCar.init(this, "textures/T_Car.jpg");
-
 
 		// Set Descriptor Pool Sizes
 		DPSZs.uniformBlocksInPool = 10 + MAX_MIKE_INSTANCES;
@@ -180,6 +180,11 @@ protected:
 		// Initialize random number generator
 		rng.seed(static_cast<unsigned int>(std::time(nullptr)));
 		uniformDist = std::uniform_real_distribution<float>(-10.0f, 10.0f);
+
+		// Initialize Mike instances
+		for (int i = 0; i < MAX_MIKE_INSTANCES; ++i) {
+			mikes.push_back({ glm::vec3(uniformDist(rng), -10.0f, uniformDist(rng)), 0.0f, false });
+		}
 	}
 
 	// Initialize pipelines and descriptor sets
@@ -257,23 +262,19 @@ protected:
 		// Render Car
 		PToon.bind(commandBuffer);
 		MCar.bind(commandBuffer);
-		DSGlobal.bind(commandBuffer, PToon, 0, currentImage); // The Global Descriptor Set (Set 0)
-		DSCar.bind(commandBuffer, PToon, 1, currentImage);	// The Material and Position Descriptor Set (Set 1)
-
-		vkCmdDrawIndexed(commandBuffer,
-						 static_cast<uint32_t>(MCar.indices.size()), 1, 0, 0, 0);
+		DSGlobal.bind(commandBuffer, PToon, 0, currentImage);
+		DSCar.bind(commandBuffer, PToon, 1, currentImage);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MCar.indices.size()), 1, 0, 0, 0);
 
 		// Render Mike instances
 		PBW.bind(commandBuffer);
 		MMike.bind(commandBuffer);
 		DSGlobal.bind(commandBuffer, PBW, 0, currentImage);
 		for (size_t i = 0; i < mikes.size(); ++i) {
-			std::cout << "Binding descriptor set for Mike instance: " << i << std::endl;
 			DSMikes[i].bind(commandBuffer, PBW, 1, currentImage);
 			vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MMike.indices.size()), 1, 0, 0, 0);
-		}
 
-		std::cout << "Rendering " << mikes.size() << " Mike instances." << std::endl;
+		}
 
 		// Render SkyBox
 		PSkyBox.bind(commandBuffer);
@@ -294,11 +295,11 @@ protected:
 		glm::vec3 m = glm::vec3(0.0f), r = glm::vec3(0.0f);
 		bool fire = false;
 
-		if(glfwGetKey(window, GLFW_KEY_C)){
-			glfwSetWindowShouldClose(window, 1 );
+		if (glfwGetKey(window, GLFW_KEY_C)) {
+			glfwSetWindowShouldClose(window, 1);
 			return;
 		}
-		getSixAxis(deltaT, m, r, fire); // Get mouse and keyboard input
+		getSixAxis(deltaT, m, r, fire);
 
 		// Time-related variables for light movement
 		static float autoTime = true;
@@ -324,7 +325,6 @@ protected:
 		// Update car speed
 		if (m.z > 0.1f) {
 			if (carSpeed < 0) {
-				// If moving backward and forward button is pressed, decelerate using DECELERATION
 				carSpeed = std::min(carSpeed + DECELERATION * deltaT, 0.0f);
 			}
 			else {
@@ -333,7 +333,6 @@ protected:
 		}
 		else if (m.z < -0.1f) {
 			if (carSpeed > 0) {
-				// If moving forward and backward button is pressed, decelerate using DECELERATION
 				carSpeed = std::max(carSpeed - DECELERATION * deltaT, 0.0f);
 			}
 			else {
@@ -341,7 +340,6 @@ protected:
 			}
 		}
 		else {
-			// Apply natural deceleration when no input
 			carSpeed = carSpeed > 0 ? std::max(carSpeed - ACCELERATION * deltaT, 0.0f) :
 				carSpeed < 0 ? std::min(carSpeed + ACCELERATION * deltaT, 0.0f) : 0.0f;
 		}
@@ -374,30 +372,35 @@ protected:
 		CarPos = glm::translate(glm::mat4(1.0f), carPosition);
 		CarPos = glm::rotate(CarPos, -carRotation, glm::vec3(0.0f, 1.0f, 0.0f));
 		CarPos = glm::rotate(CarPos, -carTilt, glm::vec3(0.0f, 0.0f, 1.0f));
-		// rotate model by 90 degrees clockwise and scale it 3x
-		CarPos = glm::scale(CarPos, glm::vec3(3.0f, 3.0f, 3.0f));
+
+		// scale and rotate model
+		CarPos = glm::scale(CarPos, glm::vec3(2.0f, 2.0f, 2.0f));
 		CarPos = glm::rotate(CarPos, glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f));
 
-        // Update Mike instances
+		// Update Mike instances
 		mikeSpawnTimer += deltaT;
-		if (mikeSpawnTimer >= 1.0f && mikes.size() < MAX_MIKE_INSTANCES) {
+		if (mikeSpawnTimer >= 1.0f) {
 			mikeSpawnTimer -= 1.0f;
-			glm::vec3 spawnPos(uniformDist(rng), 0.0f, uniformDist(rng));
-			mikes.push_back({ spawnPos, 0.0f });
+			for (auto& mike : mikes) {
+				if (!mike.isAboveFloor) {
+					mike.position.y = 0.0f;
+					mike.isAboveFloor = true;
+					break;
+				}
+			}
 		}
 
-		for (auto it = mikes.begin(); it != mikes.end();) {
-			MikeInstance& mike = *it;
-			glm::vec3 dirToPlayer = glm::normalize(carPosition - mike.position);
-			mike.position += dirToPlayer * 2.0f * deltaT;
-			mike.lifetime += deltaT;
+		for (auto& mike : mikes) {
+			if (mike.isAboveFloor) {
+				glm::vec3 dirToPlayer = glm::normalize(carPosition - mike.position);
+				mike.position += dirToPlayer * 2.0f * deltaT;
+				mike.rotation = std::atan2(dirToPlayer.x, dirToPlayer.z);
 
-			float distanceToPlayer = glm::length(carPosition - mike.position);
-			if (distanceToPlayer < 1.5f) {
-				it = mikes.erase(it);
-			}
-			else {
-				++it;
+				float distanceToPlayer = glm::length(carPosition - mike.position);
+				if (distanceToPlayer < 1.5f) {
+					mike.position.y = -10.0f;
+					mike.isAboveFloor = false;
+				}
 			}
 		}
 
@@ -429,11 +432,11 @@ protected:
 		GlobalUniformBufferObject uboGlobal{};
 		uboGlobal.eyePos = glm::vec3(glm::inverse(ViewMatrix) * glm::vec4(0, 0, 0, 1));
 
-		uboGlobal.lightDir[0] = glm::vec3 (0.0f, 0.0f, 0.0f);
+		uboGlobal.lightDir[0] = glm::vec3(0.0f, 0.0f, 0.0f);
 		uboGlobal.lightColor[0] = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 		uboGlobal.type[0] = 0;
 
-		uboGlobal.lightDir[1] = glm::normalize(glm::vec3(5.0f,4.0f,5.0f));
+		uboGlobal.lightDir[1] = glm::normalize(glm::vec3(5.0f, 4.0f, 5.0f));
 		uboGlobal.lightColor[1] = glm::vec4(1.0f);
 		uboGlobal.type[1] = 1;
 
@@ -443,13 +446,14 @@ protected:
 		ToonUniformBufferObject uboCar{};
 		uboCar.mMat = CarPos;
 		uboCar.mvpMat = ViewPrj * uboCar.mMat;
-		uboCar.nMat = glm::inverse(CarPos);	
+		uboCar.nMat = glm::inverse(CarPos);
 		DSCar.map(currentImage, &uboCar, 0);
 
 		// Update Mike uniforms
 		for (size_t i = 0; i < mikes.size(); ++i) {
 			ToonUniformBufferObject uboMike{};
-			uboMike.mMat = glm::translate(glm::mat4(1.0f), mikes[i].position);
+			glm::mat4 rotationMat = glm::rotate(glm::mat4(1.0f), mikes[i].rotation, glm::vec3(0.0f, 1.0f, 0.0f));
+			uboMike.mMat = glm::translate(glm::mat4(1.0f), mikes[i].position) * rotationMat;
 			uboMike.mvpMat = ViewPrj * uboMike.mMat;
 			uboMike.nMat = glm::inverse(glm::transpose(uboMike.mMat));
 			DSMikes[i].map(currentImage, &uboMike, 0);
@@ -472,7 +476,6 @@ protected:
 // Main function
 int main() {
 	Application app;
-
 	try {
 		app.run();
 	}
