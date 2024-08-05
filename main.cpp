@@ -312,6 +312,14 @@ protected:
 
 		update_car_position(CarPos, carPosition, carSpeed, currentSteeringAngle, carRotation, m, deltaT);
 
+		static glm::vec3 carPosition = glm::vec3(0.0f);
+    	static float carRotation = 0.0f;
+    	static float carSpeed = 0.0f;
+    	static float currentSteeringAngle = 0.0f;
+		const float MAX_SPEED = 8.0f;
+
+		update_car_position(CarPos, carPosition, carSpeed, currentSteeringAngle, carRotation, m, deltaT);
+
 		// Time-related variables for light movement
 		static float autoTime = true;
 		static float cTime = 0.0;
