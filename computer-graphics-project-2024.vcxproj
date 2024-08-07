@@ -19,24 +19,17 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\Bullet.hpp" />
-    <ClInclude Include="include\Car.hpp" />
-    <ClInclude Include="include\Entity.hpp" />
-    <ClInclude Include="include\TextMaker.hpp" />
-    <ClInclude Include="include\TimeManager.hpp" />
-    <ClInclude Include="libraries\glm_with_defines.hpp" />
     <ClInclude Include="libraries\json.hpp" />
     <ClInclude Include="libraries\plusaes.hpp" />
     <ClInclude Include="libraries\sdefl.h" />
     <ClInclude Include="libraries\sinfl.h" />
     <ClInclude Include="libraries\stb_image.h" />
     <ClInclude Include="libraries\stb_image_write.h" />
+    <ClInclude Include="libraries\TextMaker.hpp" />
     <ClInclude Include="libraries\tiny_gltf.h" />
     <ClInclude Include="libraries\tiny_obj_loader.h" />
     <ClInclude Include="include\Application.hpp" />
     <ClInclude Include="libraries\starter.hpp" />
-    <ClInclude Include="include\Utils.hpp" />
-    <ClInclude Include="include\Mike.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
@@ -47,13 +40,8 @@
     <None Include="windows_compile_shaders.bat" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Bullet.cpp" />
-    <ClCompile Include="src\Entity.cpp" />
-    <ClCompile Include="src\Mike.cpp" />
-    <ClCompile Include="src\Car.cpp" />
     <ClCompile Include="src\Application.cpp" />
     <ClCompile Include="src\Main.cpp" />
-    <ClCompile Include="src\TimeManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="andrea_windows_libraries_instructions.txt" />

@@ -1,36 +1,29 @@
 #pragma once
 // This has been adapted from the Vulkan tutorial
 
-#include <iostream>
-#include <stdexcept>
-#include <cstdlib>
-#include <vector>
-#include <cstring>
-#include <optional>
-#include <set>
-#include <cstdint>
-#include <algorithm>
-#include <fstream>
 #include <array>
 #include <cmath>
-#include <math.h>
+#include <cstdint>
+#include <cstring>
+#include <fstream>
+#include <iostream>
+#include <optional>
+#include <set>
+#include <stdexcept>
+#include <vector>
 
-#include <glm_with_defines.hpp>
-#include <gtc/matrix_transform.hpp>
-#include <gtc/quaternion.hpp>
-#include <gtx/transform2.hpp>
-
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/transform2.hpp>
 #include <chrono>
-
-#define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
-
-#define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
-
-#define TINYGLTF_IMPLEMENTATION
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#define TINYGLTF_NO_INCLUDE_STB_IMAGE
+#include <sinfl.h>
 #include <tiny_gltf.h>
 
 #define GLFW_INCLUDE_VULKAN
@@ -38,8 +31,7 @@
 
 #include <plusaes.hpp>
 
-#define SINFL_IMPLEMENTATION
-#include <sinfl.h>
+
 
 // For compile compatibility issues
 #define M_E			2.7182818284590452354	/* e */
@@ -63,15 +55,11 @@ const std::vector<const char*> validationLayers = {
 	"VK_LAYER_KHRONOS_validation"
 };
 
-std::vector<const char*> deviceExtensions = {
-   VK_KHR_SWAPCHAIN_EXTENSION_NAME
-};
-
 struct QueueFamilyIndices {
 	std::optional<uint32_t> graphicsFamily;
 	std::optional<uint32_t> presentFamily;
 
-	bool isComplete() {
+	inline bool isComplete() {
 		return graphicsFamily.has_value() &&
 			presentFamily.has_value();
 	}
@@ -84,7 +72,7 @@ struct SwapChainSupportDetails {
 };
 
 
-VkResult CreateDebugUtilsMessengerEXT(VkInstance instance,
+inline VkResult CreateDebugUtilsMessengerEXT(VkInstance instance,
 	const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
 	const VkAllocationCallbacks* pAllocator,
 	VkDebugUtilsMessengerEXT* pDebugMessenger) {
@@ -99,7 +87,7 @@ VkResult CreateDebugUtilsMessengerEXT(VkInstance instance,
 	}
 }
 
-void DestroyDebugUtilsMessengerEXT(VkInstance instance,
+inline void DestroyDebugUtilsMessengerEXT(VkInstance instance,
 	VkDebugUtilsMessengerEXT debugMessenger,
 	const VkAllocationCallbacks* pAllocator) {
 	auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)
@@ -114,7 +102,7 @@ struct errorcode {
 	VkResult resultCode;
 	std::string meaning;
 }
-ErrorCodes[] = {
+const ErrorCodes[] = {
 	{ VK_NOT_READY, "Not Ready" },
 	{ VK_TIMEOUT, "Timeout" },
 	{ VK_EVENT_SET, "Event Set" },
@@ -143,7 +131,8 @@ ErrorCodes[] = {
 	{ VK_ERROR_INVALID_EXTERNAL_HANDLE, "Invalid External Handle" },
 
 };
-void PrintVkError(VkResult result) {
+
+inline void PrintVkError(VkResult result) {
 	const int numErrorCodes = sizeof(ErrorCodes) / sizeof(struct errorcode);
 	std::string meaning = "";
 	for (int i = 0; i < numErrorCodes; i++) {
@@ -155,8 +144,7 @@ void PrintVkError(VkResult result) {
 	std::cout << "Error: " << result << ", " << meaning << "\n";
 }
 
-
-std::vector<char> readFile(const std::string& filename) {
+inline std::vector<char> readFile(const std::string& filename) {
 	std::ifstream file(filename, std::ios::ate | std::ios::binary);
 	if (!file.is_open()) {
 		std::cout << "Failed to open: " << filename << "\n";
@@ -353,7 +341,7 @@ class BaseProject {
 	friend class DescriptorSet;
 public:
 	virtual void setWindowParameters() = 0;
-	void run() {
+	inline void run() {
 		windowResizable = GLFW_FALSE;
 
 		setWindowParameters();
@@ -413,7 +401,11 @@ protected:
 	std::vector<VkFence> inFlightFences;
 	std::vector<VkFence> imagesInFlight;
 
-	void initWindow() {
+	std::vector<const char*> deviceExtensions = {
+   VK_KHR_SWAPCHAIN_EXTENSION_NAME
+	};
+
+	inline void initWindow() {
 		glfwInit();
 
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -427,7 +419,7 @@ protected:
 
 	virtual void onWindowResize(int w, int h) = 0;
 
-	static void framebufferResizeCallback(GLFWwindow* window, int width, int height) {
+	inline static void framebufferResizeCallback(GLFWwindow* window, int width, int height) {
 		auto app = reinterpret_cast<BaseProject*>
 			(glfwGetWindowUserPointer(window));
 		app->framebufferResized = true;
@@ -438,7 +430,7 @@ protected:
 	virtual void localInit() = 0;
 	virtual void pipelinesAndDescriptorSetsInit() = 0;
 
-	void initVulkan() {
+	inline void initVulkan() {
 		createInstance();
 		setupDebugMessenger();
 		createSurface();
@@ -460,7 +452,7 @@ protected:
 		createSyncObjects();
 	}
 
-	void createInstance() {
+	inline void createInstance() {
 		std::cout << "Starting createInstance()\n" << std::flush;
 		VkApplicationInfo appInfo{};
 		appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -533,7 +525,7 @@ protected:
 		return extensions;
 	}
 
-	bool checkIfItHasExtension(const char* ext) {
+	inline bool checkIfItHasExtension(const char* ext) {
 		uint32_t extCount;
 		vkEnumerateInstanceExtensionProperties(nullptr, &extCount, nullptr);
 
@@ -551,7 +543,7 @@ protected:
 		return found;
 	}
 
-	bool checkIfItHasDeviceExtension(VkPhysicalDevice device, const char* ext) {
+	inline bool checkIfItHasDeviceExtension(VkPhysicalDevice device, const char* ext) {
 		uint32_t extensionCount;
 		vkEnumerateDeviceExtensionProperties(device, nullptr,
 			&extensionCount, nullptr);
@@ -570,7 +562,7 @@ protected:
 		return found;
 	}
 
-	bool checkValidationLayerSupport() {
+	inline bool checkValidationLayerSupport() {
 		uint32_t layerCount;
 		vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 
@@ -596,7 +588,7 @@ protected:
 		return true;
 	}
 
-	void populateDebugMessengerCreateInfo(
+	inline void populateDebugMessengerCreateInfo(
 		VkDebugUtilsMessengerCreateInfoEXT& createInfo) {
 		createInfo = {};
 		createInfo.sType =
@@ -621,7 +613,7 @@ protected:
 		return VK_FALSE;
 	}
 
-	void setupDebugMessenger() {
+	inline void setupDebugMessenger() {
 
 		VkDebugUtilsMessengerCreateInfoEXT createInfo{};
 		populateDebugMessengerCreateInfo(createInfo);
@@ -632,7 +624,7 @@ protected:
 		}
 	}
 
-	void createSurface() {
+	inline void createSurface() {
 		if (glfwCreateWindowSurface(instance, window, nullptr, &surface)
 			!= VK_SUCCESS) {
 			throw std::runtime_error("failed to create window surface!");
@@ -649,7 +641,7 @@ protected:
 		bool extensionsSupported;
 		std::set<std::string> requiredExtensions;
 
-		void print() {
+		inline void print() {
 			std::cout << "swapChainAdequate: " << swapChainAdequate << "\n";
 			std::cout << "swapChainFormatSupport: " << swapChainFormatSupport << "\n";
 			std::cout << "swapChainPresentModeSupport: " << swapChainPresentModeSupport << "\n";
@@ -663,7 +655,7 @@ protected:
 		}
 	};
 
-	void pickPhysicalDevice() {
+	inline void pickPhysicalDevice() {
 		uint32_t deviceCount = 0;
 		vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
 		deviceReport devRep;
@@ -700,7 +692,7 @@ protected:
 		}
 	}
 
-	bool isDeviceSuitable(VkPhysicalDevice device, deviceReport& devRep) {
+	inline bool isDeviceSuitable(VkPhysicalDevice device, deviceReport& devRep) {
 		QueueFamilyIndices indices = findQueueFamilies(device);
 
 		devRep.extensionsSupported = checkDeviceExtensionSupport(device, devRep);
@@ -724,7 +716,7 @@ protected:
 			devRep.anisotropySupport;
 	}
 
-	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) {
+	inline QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) {
 		QueueFamilyIndices indices;
 
 		uint32_t queueFamilyCount = 0;
@@ -757,7 +749,7 @@ protected:
 		return indices;
 	}
 
-	bool checkDeviceExtensionSupport(VkPhysicalDevice device, deviceReport& devRep) {
+	inline bool checkDeviceExtensionSupport(VkPhysicalDevice device, deviceReport& devRep) {
 		uint32_t extensionCount;
 		vkEnumerateDeviceExtensionProperties(device, nullptr,
 			&extensionCount, nullptr);
@@ -777,7 +769,7 @@ protected:
 		return devRep.requiredExtensions.empty();
 	}
 
-	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device) {
+	inline SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device) {
 		SwapChainSupportDetails details;
 
 		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface,
@@ -806,7 +798,7 @@ protected:
 		return details;
 	}
 
-	VkSampleCountFlagBits getMaxUsableSampleCount() {
+	inline VkSampleCountFlagBits getMaxUsableSampleCount() {
 		VkPhysicalDeviceProperties physicalDeviceProperties;
 		vkGetPhysicalDeviceProperties(physicalDevice, &physicalDeviceProperties);
 
@@ -824,7 +816,7 @@ protected:
 		return VK_SAMPLE_COUNT_1_BIT;
 	}
 
-	void createLogicalDevice() {
+	inline void createLogicalDevice() {
 		QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
 
 		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
@@ -873,7 +865,7 @@ protected:
 		vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue);
 	}
 
-	void createSwapChain() {
+	inline void createSwapChain() {
 		SwapChainSupportDetails swapChainSupport =
 			querySwapChainSupport(physicalDevice);
 		VkSurfaceFormatKHR surfaceFormat =
@@ -948,7 +940,7 @@ protected:
 		return availableFormats[0];
 	}
 
-	VkPresentModeKHR chooseSwapPresentMode(
+	inline VkPresentModeKHR chooseSwapPresentMode(
 		const std::vector<VkPresentModeKHR>& availablePresentModes) {
 		for (const auto& availablePresentMode : availablePresentModes) {
 			if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
@@ -958,7 +950,7 @@ protected:
 		return VK_PRESENT_MODE_FIFO_KHR;
 	}
 
-	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
+	inline VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
 		if (capabilities.currentExtent.width != UINT32_MAX) {
 			return capabilities.currentExtent;
 		}
@@ -978,7 +970,7 @@ protected:
 		}
 	}
 
-	void createImageViews() {
+	inline void createImageViews() {
 		swapChainImageViews.resize(swapChainImages.size());
 
 		for (size_t i = 0; i < swapChainImages.size(); i++) {
@@ -1014,7 +1006,7 @@ protected:
 		return imageView;
 	}
 
-	void createRenderPass() {
+	inline void createRenderPass() {
 		VkAttachmentDescription colorAttachmentResolve{};
 		colorAttachmentResolve.format = swapChainImageFormat;
 		colorAttachmentResolve.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -1097,7 +1089,7 @@ protected:
 		}
 	}
 
-	void createFramebuffers() {
+	inline void createFramebuffers() {
 		swapChainFramebuffers.resize(swapChainImageViews.size());
 		for (size_t i = 0; i < swapChainImageViews.size(); i++) {
 			std::array<VkImageView, 3> attachments = {
@@ -1126,7 +1118,7 @@ protected:
 		}
 	}
 
-	void createCommandPool() {
+	inline void createCommandPool() {
 		QueueFamilyIndices queueFamilyIndices =
 			findQueueFamilies(physicalDevice);
 
@@ -1142,7 +1134,7 @@ protected:
 		}
 	}
 
-	void createColorResources() {
+	inline void createColorResources() {
 		VkFormat colorFormat = swapChainImageFormat;
 		createImage(swapChainExtent.width, swapChainExtent.height, 1, 1,
 			msaaSamples, colorFormat, VK_IMAGE_TILING_OPTIMAL,
@@ -1155,7 +1147,7 @@ protected:
 			VK_IMAGE_VIEW_TYPE_2D, 1);
 	}
 
-	void createDepthResources() {
+	inline void createDepthResources() {
 		VkFormat depthFormat = findDepthFormat();
 
 		createImage(swapChainExtent.width, swapChainExtent.height, 1, 1,
@@ -1171,7 +1163,7 @@ protected:
 			VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1, 1);
 	}
 
-	VkFormat findDepthFormat() {
+	inline VkFormat findDepthFormat() {
 		return findSupportedFormat({ VK_FORMAT_D32_SFLOAT,
 									VK_FORMAT_D32_SFLOAT_S8_UINT,
 									VK_FORMAT_D24_UNORM_S8_UINT },
@@ -1198,7 +1190,7 @@ protected:
 		throw std::runtime_error("failed to find supported format!");
 	}
 
-	bool hasStencilComponent(VkFormat format) {
+	inline bool hasStencilComponent(VkFormat format) {
 		return format == VK_FORMAT_D32_SFLOAT_S8_UINT ||
 			format == VK_FORMAT_D24_UNORM_S8_UINT;
 	}
@@ -1422,7 +1414,7 @@ protected:
 		endSingleTimeCommands(commandBuffer);
 	}
 
-	VkCommandBuffer beginSingleTimeCommands() {
+	inline VkCommandBuffer beginSingleTimeCommands() {
 		VkCommandBufferAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
@@ -1441,7 +1433,7 @@ protected:
 		return commandBuffer;
 	}
 
-	void endSingleTimeCommands(VkCommandBuffer commandBuffer) {
+	inline void endSingleTimeCommands(VkCommandBuffer commandBuffer) {
 		vkEndCommandBuffer(commandBuffer);
 
 		VkSubmitInfo submitInfo{};
@@ -1505,7 +1497,7 @@ protected:
 		throw std::runtime_error("failed to find suitable memory type!");
 	}
 
-	void createDescriptorPool() {
+	inline void createDescriptorPool() {
 		std::array<VkDescriptorPoolSize, 2> poolSizes{};
 		poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		poolSizes[0].descriptorCount = static_cast<uint32_t>(DPSZs.uniformBlocksInPool *
@@ -1530,7 +1522,7 @@ protected:
 
 	virtual void populateCommandBuffer(VkCommandBuffer commandBuffer, int i) = 0;
 
-	void createCommandBuffers() {
+	inline void createCommandBuffers() {
 		commandBuffers.resize(swapChainFramebuffers.size());
 
 		VkCommandBufferAllocateInfo allocInfo{};
@@ -1587,7 +1579,7 @@ protected:
 		}
 	}
 
-	void createSyncObjects() {
+	inline void createSyncObjects() {
 		imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
 		renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
 		inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
@@ -1618,7 +1610,7 @@ protected:
 		}
 	}
 
-	void mainLoop() {
+	inline void mainLoop() {
 		while (!glfwWindowShouldClose(window)) {
 			glfwPollEvents();
 			drawFrame();
@@ -1627,7 +1619,7 @@ protected:
 		vkDeviceWaitIdle(device);
 	}
 
-	void drawFrame() {
+	inline void drawFrame() {
 		vkWaitForFences(device, 1, &inFlightFences[currentFrame],
 			VK_TRUE, UINT64_MAX);
 
@@ -1699,11 +1691,10 @@ protected:
 	}
 
 	virtual void updateUniformBuffer(uint32_t currentImage) = 0;
-
 	virtual void pipelinesAndDescriptorSetsCleanup() = 0;
 	virtual void localCleanup() = 0;
 
-	void recreateSwapChain() {
+	inline void recreateSwapChain() {
 		int width = 0, height = 0;
 		glfwGetFramebufferSize(window, &width, &height);
 
@@ -1729,7 +1720,7 @@ protected:
 		createCommandBuffers();
 	}
 
-	void cleanupSwapChain() {
+	inline void cleanupSwapChain() {
 		vkDestroyImageView(device, colorImageView, nullptr);
 		vkDestroyImage(device, colorImage, nullptr);
 		vkFreeMemory(device, colorImageMemory, nullptr);
@@ -1758,7 +1749,7 @@ protected:
 		vkDestroyDescriptorPool(device, descriptorPool, nullptr);
 	}
 
-	void cleanup() {
+	inline void cleanup() {
 		cleanupSwapChain();
 
 		localCleanup();
@@ -1783,13 +1774,13 @@ protected:
 		glfwTerminate();
 	}
 
-	void RebuildPipeline() {
+	inline void RebuildPipeline() {
 		framebufferResized = true;
 	}
 
 
 	// Control Wrapper
-	void handleGamePad(int id, glm::vec3& m, glm::vec3& r, bool& fire) {
+	inline void handleGamePad(int id, glm::vec3& m, glm::vec3& r, bool& fire) {
 		const float deadZone = 0.1f;
 
 		if (glfwJoystickIsGamepad(id)) {
@@ -1897,31 +1888,31 @@ protected:
 	// Public part of the base class
 public:
 	// Debug commands
-	void printFloat(const char* Name, float v) {
+	inline void printFloat(const char* Name, float v) {
 		std::cout << "float " << Name << " = " << v << ";\n";
 	}
-	void printVec2(const char* Name, glm::vec2 v) {
+	inline void printVec2(const char* Name, glm::vec2 v) {
 		std::cout << "glm::vec3 " << Name << " = glm::vec3(" << v[0] << ", " << v[1] << ");\n";
 	}
-	void printVec3(const char* Name, glm::vec3 v) {
+	inline void printVec3(const char* Name, glm::vec3 v) {
 		std::cout << "glm::vec3 " << Name << " = glm::vec3(" << v[0] << ", " << v[1] << ", " << v[2] << ");\n";
 	}
-	void printVec4(const char* Name, glm::vec4 v) {
+	inline void printVec4(const char* Name, glm::vec4 v) {
 		std::cout << "glm::vec4 " << Name << " = glm::vec4(" << v[0] << ", " << v[1] << ", " << v[2] << ", " << v[3] << ");\n";
 	}
-	void printMat3(const char* Name, glm::mat3 v) {
+	inline void printMat3(const char* Name, glm::mat3 v) {
 		std::cout << "glm::mat3 " << Name << " = glm::mat3(";
 		for (int i = 0; i < 9; i++) {
 			std::cout << v[i / 3][i % 3] << ((i < 8) ? ", " : ");\n");
 		}
 	}
-	void printMat4(const char* Name, glm::mat4 v) {
+	inline void printMat4(const char* Name, glm::mat4 v) {
 		std::cout << "glm::mat4 " << Name << " = glm::mat4(";
 		for (int i = 0; i < 16; i++) {
 			std::cout << v[i / 4][i % 4] << ((i < 15) ? ", " : ");\n");
 		}
 	}
-	void printQuat(const char* Name, glm::quat q) {
+	inline void printQuat(const char* Name, glm::quat q) {
 		std::cout << "glm::vec3 " << Name << " = glm::vec3(" << q[0] << ", " << q[1] << ", " << q[2] << ", " << q[3] << ");\n";
 	}
 
@@ -2094,7 +2085,7 @@ private:
 public:
 	bool screenshotSaved = false;
 
-	void saveScreenshot(const char* filename, int currentBuffer) {
+	inline void saveScreenshot(const char* filename, int currentBuffer) {
 		VkResult result;
 		uint32_t width = swapChainExtent.width;
 		uint32_t height = swapChainExtent.height;
@@ -2343,7 +2334,7 @@ public:
 			}
 			data += subResourceLayout.rowPitch;
 		}
-		stbi_write_png(filename, width, height, 3, pixelArray, width * 3);
+		// stbi_write_png(filename, width, height, 3, pixelArray, width * 3);
 		free(pixelArray);
 
 		std::cout << "Screenshot saved to disk" << std::endl;
@@ -2363,7 +2354,7 @@ public:
 // Helper classes
 
 
-void VertexDescriptor::init(BaseProject* bp, std::vector<VertexBindingDescriptorElement> B, std::vector<VertexDescriptorElement> E) {
+inline void VertexDescriptor::init(BaseProject* bp, std::vector<VertexBindingDescriptorElement> B, std::vector<VertexDescriptorElement> E) {
 	BP = bp;
 	Bindings = B;
 	Layout = E;
@@ -2457,10 +2448,10 @@ void VertexDescriptor::init(BaseProject* bp, std::vector<VertexBindingDescriptor
 	}
 }
 
-void VertexDescriptor::cleanup() {
+inline void VertexDescriptor::cleanup() {
 }
 
-std::vector<VkVertexInputBindingDescription> VertexDescriptor::getBindingDescription() {
+inline std::vector<VkVertexInputBindingDescription> VertexDescriptor::getBindingDescription() {
 	std::vector<VkVertexInputBindingDescription>bindingDescription{};
 	bindingDescription.resize(Bindings.size());
 	for (int i = 0; i < Bindings.size(); i++) {
@@ -2471,7 +2462,7 @@ std::vector<VkVertexInputBindingDescription> VertexDescriptor::getBindingDescrip
 	return bindingDescription;
 }
 
-std::vector<VkVertexInputAttributeDescription> VertexDescriptor::getAttributeDescriptions() {
+inline std::vector<VkVertexInputAttributeDescription> VertexDescriptor::getAttributeDescriptions() {
 	std::vector<VkVertexInputAttributeDescription> attributeDescriptions{};
 	attributeDescriptions.resize(Layout.size());
 	for (int i = 0; i < Layout.size(); i++) {
@@ -2484,9 +2475,7 @@ std::vector<VkVertexInputAttributeDescription> VertexDescriptor::getAttributeDes
 	return attributeDescriptions;
 }
 
-
-
-void Model::loadModelOBJ(std::string file) {
+inline void Model::loadModelOBJ(std::string file) {
 	tinyobj::attrib_t attrib;
 	std::vector<tinyobj::shape_t> shapes;
 	std::vector<tinyobj::material_t> materials;
@@ -2554,7 +2543,7 @@ void Model::loadModelOBJ(std::string file) {
 
 }
 
-void Model::loadModelGLTF(std::string file, bool encoded) {
+inline void Model::loadModelGLTF(std::string file, bool encoded) {
 	tinygltf::Model model;
 	tinygltf::TinyGLTF loader;
 	std::string warn, err;
@@ -2814,7 +2803,7 @@ void Model::loadModelGLTF(std::string file, bool encoded) {
 		glm::scale(glm::mat4(1), S);
 }
 
-void Model::createVertexBuffer() {
+inline void Model::createVertexBuffer() {
 	//	VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 	VkDeviceSize bufferSize = vertices.size();
 
@@ -2829,7 +2818,7 @@ void Model::createVertexBuffer() {
 	vkUnmapMemory(BP->device, vertexBufferMemory);
 }
 
-void Model::createIndexBuffer() {
+inline void Model::createIndexBuffer() {
 	VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
 	BP->createBuffer(bufferSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
@@ -2843,7 +2832,7 @@ void Model::createIndexBuffer() {
 	vkUnmapMemory(BP->device, indexBufferMemory);
 }
 
-void Model::initMesh(BaseProject* bp, VertexDescriptor* vd) {
+inline void Model::initMesh(BaseProject* bp, VertexDescriptor* vd) {
 	BP = bp;
 	VD = vd;
 	int mainStride = VD->Bindings[0].stride;
@@ -2854,7 +2843,7 @@ void Model::initMesh(BaseProject* bp, VertexDescriptor* vd) {
 	Wm = glm::mat4(1);
 }
 
-void Model::init(BaseProject* bp, VertexDescriptor* vd, std::string file, ModelType MT) {
+inline void Model::init(BaseProject* bp, VertexDescriptor* vd, std::string file, ModelType MT) {
 	BP = bp;
 	VD = vd;
 	Wm = glm::mat4(1);
@@ -2873,14 +2862,14 @@ void Model::init(BaseProject* bp, VertexDescriptor* vd, std::string file, ModelT
 	createIndexBuffer();
 }
 
-void Model::cleanup() {
+inline void Model::cleanup() {
 	vkDestroyBuffer(BP->device, indexBuffer, nullptr);
 	vkFreeMemory(BP->device, indexBufferMemory, nullptr);
 	vkDestroyBuffer(BP->device, vertexBuffer, nullptr);
 	vkFreeMemory(BP->device, vertexBufferMemory, nullptr);
 }
 
-void Model::bind(VkCommandBuffer commandBuffer) {
+inline void Model::bind(VkCommandBuffer commandBuffer) {
 	VkBuffer vertexBuffers[] = { vertexBuffer };
 	// property .vertexBuffer of models, contains the VkBuffer handle to its vertex buffer
 	VkDeviceSize offsets[] = { 0 };
@@ -2895,7 +2884,7 @@ void Model::bind(VkCommandBuffer commandBuffer) {
 
 
 
-void Texture::createTextureImage(std::string files[], VkFormat Fmt = VK_FORMAT_R8G8B8A8_SRGB) {
+inline void Texture::createTextureImage(std::string files[], VkFormat Fmt = VK_FORMAT_R8G8B8A8_SRGB) {
 	int texWidth, texHeight, texChannels;
 	int curWidth = -1, curHeight = -1, curChannels = -1;
 	stbi_uc* pixels[maxImgs];
@@ -2964,7 +2953,7 @@ void Texture::createTextureImage(std::string files[], VkFormat Fmt = VK_FORMAT_R
 	vkFreeMemory(BP->device, stagingBufferMemory, nullptr);
 }
 
-void Texture::createTextureImageView(VkFormat Fmt = VK_FORMAT_R8G8B8A8_SRGB) {
+inline void Texture::createTextureImageView(VkFormat Fmt = VK_FORMAT_R8G8B8A8_SRGB) {
 	textureImageView = BP->createImageView(textureImage,
 		Fmt,
 		VK_IMAGE_ASPECT_COLOR_BIT,
@@ -2973,7 +2962,7 @@ void Texture::createTextureImageView(VkFormat Fmt = VK_FORMAT_R8G8B8A8_SRGB) {
 		imgs);
 }
 
-void Texture::createTextureSampler(
+inline void Texture::createTextureSampler(
 	VkFilter magFilter = VK_FILTER_LINEAR,
 	VkFilter minFilter = VK_FILTER_LINEAR,
 	VkSamplerAddressMode addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
@@ -3011,7 +3000,7 @@ void Texture::createTextureSampler(
 
 
 
-void Texture::init(BaseProject* bp, std::string file, VkFormat Fmt = VK_FORMAT_R8G8B8A8_SRGB, bool initSampler = true) {
+inline void Texture::init(BaseProject* bp, std::string file, VkFormat Fmt = VK_FORMAT_R8G8B8A8_SRGB, bool initSampler = true) {
 	std::string files[1] = { file };
 	BP = bp;
 	imgs = 1;
@@ -3023,7 +3012,7 @@ void Texture::init(BaseProject* bp, std::string file, VkFormat Fmt = VK_FORMAT_R
 }
 
 
-void Texture::initCubic(BaseProject* bp, std::string files[6]) {
+inline void Texture::initCubic(BaseProject* bp, std::string files[6]) {
 	BP = bp;
 	imgs = 6;
 	createTextureImage(files);
@@ -3032,7 +3021,7 @@ void Texture::initCubic(BaseProject* bp, std::string files[6]) {
 }
 
 
-void Texture::cleanup() {
+inline void Texture::cleanup() {
 	vkDestroySampler(BP->device, textureSampler, nullptr);
 	vkDestroyImageView(BP->device, textureImageView, nullptr);
 	vkDestroyImage(BP->device, textureImage, nullptr);
@@ -3043,7 +3032,7 @@ void Texture::cleanup() {
 
 
 
-void Pipeline::init(BaseProject* bp, VertexDescriptor* vd,
+inline void Pipeline::init(BaseProject* bp, VertexDescriptor* vd,
 	const std::string& VertShader, const std::string& FragShader,
 	std::vector<DescriptorSetLayout*> d) {
 	BP = bp;
@@ -3069,7 +3058,7 @@ void Pipeline::init(BaseProject* bp, VertexDescriptor* vd,
 	D = d;
 }
 
-void Pipeline::setAdvancedFeatures(VkCompareOp _compareOp,
+inline void Pipeline::setAdvancedFeatures(VkCompareOp _compareOp,
 	VkPolygonMode _polyModel,
 	VkCullModeFlagBits _CM,
 	bool _transp) {
@@ -3080,7 +3069,7 @@ void Pipeline::setAdvancedFeatures(VkCompareOp _compareOp,
 }
 
 
-void Pipeline::create() {
+inline void Pipeline::create() {
 	VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
 	vertShaderStageInfo.sType =
 		VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -3254,19 +3243,19 @@ void Pipeline::create() {
 
 }
 
-void Pipeline::destroy() {
+inline void Pipeline::destroy() {
 	vkDestroyShaderModule(BP->device, fragShaderModule, nullptr);
 	vkDestroyShaderModule(BP->device, vertShaderModule, nullptr);
 }
 
-void Pipeline::bind(VkCommandBuffer commandBuffer) {
+inline void Pipeline::bind(VkCommandBuffer commandBuffer) {
 	vkCmdBindPipeline(commandBuffer,
 		VK_PIPELINE_BIND_POINT_GRAPHICS,
 		graphicsPipeline);
 
 }
 
-VkShaderModule Pipeline::createShaderModule(const std::vector<char>& code) {
+inline VkShaderModule Pipeline::createShaderModule(const std::vector<char>& code) {
 	VkShaderModuleCreateInfo createInfo{};
 	createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 	createInfo.codeSize = code.size();
@@ -3284,12 +3273,12 @@ VkShaderModule Pipeline::createShaderModule(const std::vector<char>& code) {
 	return shaderModule;
 }
 
-void Pipeline::cleanup() {
+inline void Pipeline::cleanup() {
 	vkDestroyPipeline(BP->device, graphicsPipeline, nullptr);
 	vkDestroyPipelineLayout(BP->device, pipelineLayout, nullptr);
 }
 
-void DescriptorSetLayout::init(BaseProject* bp, std::vector<DescriptorSetLayoutBinding> B) {
+inline void DescriptorSetLayout::init(BaseProject* bp, std::vector<DescriptorSetLayoutBinding> B) {
 	BP = bp;
 	Bindings = B;
 	imgInfoSize = 0;
@@ -3320,11 +3309,11 @@ void DescriptorSetLayout::init(BaseProject* bp, std::vector<DescriptorSetLayoutB
 	}
 }
 
-void DescriptorSetLayout::cleanup() {
+inline void DescriptorSetLayout::cleanup() {
 	vkDestroyDescriptorSetLayout(BP->device, descriptorSetLayout, nullptr);
 }
 
-void DescriptorSet::init(BaseProject* bp, DescriptorSetLayout* DSL,
+inline void DescriptorSet::init(BaseProject* bp, DescriptorSetLayout* DSL,
 	std::vector<Texture*>Txs) {
 	BP = bp;
 	Layout = DSL;
@@ -3418,7 +3407,7 @@ void DescriptorSet::init(BaseProject* bp, DescriptorSetLayout* DSL,
 	}
 }
 
-void DescriptorSet::cleanup() {
+inline void DescriptorSet::cleanup() {
 	for (int j = 0; j < uniformBuffers.size(); j++) {
 		if (toFree[j]) {
 			for (size_t i = 0; i < BP->swapChainImages.size(); i++) {
@@ -3429,7 +3418,7 @@ void DescriptorSet::cleanup() {
 	}
 }
 
-void DescriptorSet::bind(VkCommandBuffer commandBuffer, Pipeline& P, int setId,
+inline void DescriptorSet::bind(VkCommandBuffer commandBuffer, Pipeline& P, int setId,
 	int currentImage) {
 	//std::cout << "DS[ci]: " << &descriptorSets[currentImage] << "\n";
 	vkCmdBindDescriptorSets(commandBuffer,
@@ -3438,7 +3427,7 @@ void DescriptorSet::bind(VkCommandBuffer commandBuffer, Pipeline& P, int setId,
 		0, nullptr);
 }
 
-void DescriptorSet::map(int currentImage, void* src, int slot) {
+inline void DescriptorSet::map(int currentImage, void* src, int slot) {
 	void* data;
 
 	int size = Layout->Bindings[slot].linkSize;
