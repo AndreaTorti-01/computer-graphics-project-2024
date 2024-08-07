@@ -5,7 +5,7 @@
   <PropertyGroup />
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>.\headers;C:\vs_graphics_libraries\glfw.bin.WIN64\include;C:\VulkanSDK\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\include;.\libraries;C:\vs_graphics_libraries\glfw.bin.WIN64\include;C:\VulkanSDK\Include;C:\vs_graphics_libraries\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <BufferSecurityCheck>false</BufferSecurityCheck>
     </ClCompile>
