@@ -97,10 +97,24 @@ CMakeFiles/Computer-graphics-project.dir/src/Bullet.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/Computer-graphics-project.dir/src/Bullet.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/comodino/computer-graphics-project-2024/src/Bullet.cpp -o CMakeFiles/Computer-graphics-project.dir/src/Bullet.cpp.s
 
+CMakeFiles/Computer-graphics-project.dir/src/Car.cpp.o: CMakeFiles/Computer-graphics-project.dir/flags.make
+CMakeFiles/Computer-graphics-project.dir/src/Car.cpp.o: /home/comodino/computer-graphics-project-2024/src/Car.cpp
+CMakeFiles/Computer-graphics-project.dir/src/Car.cpp.o: CMakeFiles/Computer-graphics-project.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/comodino/computer-graphics-project-2024/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/Computer-graphics-project.dir/src/Car.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Computer-graphics-project.dir/src/Car.cpp.o -MF CMakeFiles/Computer-graphics-project.dir/src/Car.cpp.o.d -o CMakeFiles/Computer-graphics-project.dir/src/Car.cpp.o -c /home/comodino/computer-graphics-project-2024/src/Car.cpp
+
+CMakeFiles/Computer-graphics-project.dir/src/Car.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/Computer-graphics-project.dir/src/Car.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/comodino/computer-graphics-project-2024/src/Car.cpp > CMakeFiles/Computer-graphics-project.dir/src/Car.cpp.i
+
+CMakeFiles/Computer-graphics-project.dir/src/Car.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/Computer-graphics-project.dir/src/Car.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/comodino/computer-graphics-project-2024/src/Car.cpp -o CMakeFiles/Computer-graphics-project.dir/src/Car.cpp.s
+
 CMakeFiles/Computer-graphics-project.dir/src/Entity.cpp.o: CMakeFiles/Computer-graphics-project.dir/flags.make
 CMakeFiles/Computer-graphics-project.dir/src/Entity.cpp.o: /home/comodino/computer-graphics-project-2024/src/Entity.cpp
 CMakeFiles/Computer-graphics-project.dir/src/Entity.cpp.o: CMakeFiles/Computer-graphics-project.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/comodino/computer-graphics-project-2024/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/Computer-graphics-project.dir/src/Entity.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/comodino/computer-graphics-project-2024/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/Computer-graphics-project.dir/src/Entity.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Computer-graphics-project.dir/src/Entity.cpp.o -MF CMakeFiles/Computer-graphics-project.dir/src/Entity.cpp.o.d -o CMakeFiles/Computer-graphics-project.dir/src/Entity.cpp.o -c /home/comodino/computer-graphics-project-2024/src/Entity.cpp
 
 CMakeFiles/Computer-graphics-project.dir/src/Entity.cpp.i: cmake_force
@@ -114,7 +128,7 @@ CMakeFiles/Computer-graphics-project.dir/src/Entity.cpp.s: cmake_force
 CMakeFiles/Computer-graphics-project.dir/src/Main.cpp.o: CMakeFiles/Computer-graphics-project.dir/flags.make
 CMakeFiles/Computer-graphics-project.dir/src/Main.cpp.o: /home/comodino/computer-graphics-project-2024/src/Main.cpp
 CMakeFiles/Computer-graphics-project.dir/src/Main.cpp.o: CMakeFiles/Computer-graphics-project.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/comodino/computer-graphics-project-2024/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/Computer-graphics-project.dir/src/Main.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/comodino/computer-graphics-project-2024/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/Computer-graphics-project.dir/src/Main.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Computer-graphics-project.dir/src/Main.cpp.o -MF CMakeFiles/Computer-graphics-project.dir/src/Main.cpp.o.d -o CMakeFiles/Computer-graphics-project.dir/src/Main.cpp.o -c /home/comodino/computer-graphics-project-2024/src/Main.cpp
 
 CMakeFiles/Computer-graphics-project.dir/src/Main.cpp.i: cmake_force
@@ -125,25 +139,43 @@ CMakeFiles/Computer-graphics-project.dir/src/Main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/Computer-graphics-project.dir/src/Main.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/comodino/computer-graphics-project-2024/src/Main.cpp -o CMakeFiles/Computer-graphics-project.dir/src/Main.cpp.s
 
+CMakeFiles/Computer-graphics-project.dir/src/Mike.cpp.o: CMakeFiles/Computer-graphics-project.dir/flags.make
+CMakeFiles/Computer-graphics-project.dir/src/Mike.cpp.o: /home/comodino/computer-graphics-project-2024/src/Mike.cpp
+CMakeFiles/Computer-graphics-project.dir/src/Mike.cpp.o: CMakeFiles/Computer-graphics-project.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/comodino/computer-graphics-project-2024/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/Computer-graphics-project.dir/src/Mike.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Computer-graphics-project.dir/src/Mike.cpp.o -MF CMakeFiles/Computer-graphics-project.dir/src/Mike.cpp.o.d -o CMakeFiles/Computer-graphics-project.dir/src/Mike.cpp.o -c /home/comodino/computer-graphics-project-2024/src/Mike.cpp
+
+CMakeFiles/Computer-graphics-project.dir/src/Mike.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/Computer-graphics-project.dir/src/Mike.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/comodino/computer-graphics-project-2024/src/Mike.cpp > CMakeFiles/Computer-graphics-project.dir/src/Mike.cpp.i
+
+CMakeFiles/Computer-graphics-project.dir/src/Mike.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/Computer-graphics-project.dir/src/Mike.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/comodino/computer-graphics-project-2024/src/Mike.cpp -o CMakeFiles/Computer-graphics-project.dir/src/Mike.cpp.s
+
 # Object files for target Computer-graphics-project
 Computer__graphics__project_OBJECTS = \
 "CMakeFiles/Computer-graphics-project.dir/src/Application.cpp.o" \
 "CMakeFiles/Computer-graphics-project.dir/src/Bullet.cpp.o" \
+"CMakeFiles/Computer-graphics-project.dir/src/Car.cpp.o" \
 "CMakeFiles/Computer-graphics-project.dir/src/Entity.cpp.o" \
-"CMakeFiles/Computer-graphics-project.dir/src/Main.cpp.o"
+"CMakeFiles/Computer-graphics-project.dir/src/Main.cpp.o" \
+"CMakeFiles/Computer-graphics-project.dir/src/Mike.cpp.o"
 
 # External object files for target Computer-graphics-project
 Computer__graphics__project_EXTERNAL_OBJECTS =
 
 Computer-graphics-project: CMakeFiles/Computer-graphics-project.dir/src/Application.cpp.o
 Computer-graphics-project: CMakeFiles/Computer-graphics-project.dir/src/Bullet.cpp.o
+Computer-graphics-project: CMakeFiles/Computer-graphics-project.dir/src/Car.cpp.o
 Computer-graphics-project: CMakeFiles/Computer-graphics-project.dir/src/Entity.cpp.o
 Computer-graphics-project: CMakeFiles/Computer-graphics-project.dir/src/Main.cpp.o
+Computer-graphics-project: CMakeFiles/Computer-graphics-project.dir/src/Mike.cpp.o
 Computer-graphics-project: CMakeFiles/Computer-graphics-project.dir/build.make
 Computer-graphics-project: /lib/libvulkan.so
 Computer-graphics-project: /usr/lib/libglfw.so.3.4
 Computer-graphics-project: CMakeFiles/Computer-graphics-project.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/comodino/computer-graphics-project-2024/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Linking CXX executable Computer-graphics-project"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/comodino/computer-graphics-project-2024/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Linking CXX executable Computer-graphics-project"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/Computer-graphics-project.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

@@ -10,8 +10,10 @@ set(CMAKE_DEPENDS_LANGUAGES
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/comodino/computer-graphics-project-2024/src/Application.cpp" "CMakeFiles/Computer-graphics-project.dir/src/Application.cpp.o" "gcc" "CMakeFiles/Computer-graphics-project.dir/src/Application.cpp.o.d"
   "/home/comodino/computer-graphics-project-2024/src/Bullet.cpp" "CMakeFiles/Computer-graphics-project.dir/src/Bullet.cpp.o" "gcc" "CMakeFiles/Computer-graphics-project.dir/src/Bullet.cpp.o.d"
+  "/home/comodino/computer-graphics-project-2024/src/Car.cpp" "CMakeFiles/Computer-graphics-project.dir/src/Car.cpp.o" "gcc" "CMakeFiles/Computer-graphics-project.dir/src/Car.cpp.o.d"
   "/home/comodino/computer-graphics-project-2024/src/Entity.cpp" "CMakeFiles/Computer-graphics-project.dir/src/Entity.cpp.o" "gcc" "CMakeFiles/Computer-graphics-project.dir/src/Entity.cpp.o.d"
   "/home/comodino/computer-graphics-project-2024/src/Main.cpp" "CMakeFiles/Computer-graphics-project.dir/src/Main.cpp.o" "gcc" "CMakeFiles/Computer-graphics-project.dir/src/Main.cpp.o.d"
+  "/home/comodino/computer-graphics-project-2024/src/Mike.cpp" "CMakeFiles/Computer-graphics-project.dir/src/Mike.cpp.o" "gcc" "CMakeFiles/Computer-graphics-project.dir/src/Mike.cpp.o.d"
   )
 
 # Targets to which this target links which contain Fortran sources.

@@ -190,6 +190,30 @@ src/Bullet.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Computer-graphics-project.dir/build.make CMakeFiles/Computer-graphics-project.dir/src/Bullet.cpp.s
 .PHONY : src/Bullet.cpp.s
 
+src/Car.o: src/Car.cpp.o
+.PHONY : src/Car.o
+
+# target to build an object file
+src/Car.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Computer-graphics-project.dir/build.make CMakeFiles/Computer-graphics-project.dir/src/Car.cpp.o
+.PHONY : src/Car.cpp.o
+
+src/Car.i: src/Car.cpp.i
+.PHONY : src/Car.i
+
+# target to preprocess a source file
+src/Car.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Computer-graphics-project.dir/build.make CMakeFiles/Computer-graphics-project.dir/src/Car.cpp.i
+.PHONY : src/Car.cpp.i
+
+src/Car.s: src/Car.cpp.s
+.PHONY : src/Car.s
+
+# target to generate assembly for a file
+src/Car.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Computer-graphics-project.dir/build.make CMakeFiles/Computer-graphics-project.dir/src/Car.cpp.s
+.PHONY : src/Car.cpp.s
+
 src/Entity.o: src/Entity.cpp.o
 .PHONY : src/Entity.o
 
@@ -238,6 +262,30 @@ src/Main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Computer-graphics-project.dir/build.make CMakeFiles/Computer-graphics-project.dir/src/Main.cpp.s
 .PHONY : src/Main.cpp.s
 
+src/Mike.o: src/Mike.cpp.o
+.PHONY : src/Mike.o
+
+# target to build an object file
+src/Mike.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Computer-graphics-project.dir/build.make CMakeFiles/Computer-graphics-project.dir/src/Mike.cpp.o
+.PHONY : src/Mike.cpp.o
+
+src/Mike.i: src/Mike.cpp.i
+.PHONY : src/Mike.i
+
+# target to preprocess a source file
+src/Mike.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Computer-graphics-project.dir/build.make CMakeFiles/Computer-graphics-project.dir/src/Mike.cpp.i
+.PHONY : src/Mike.cpp.i
+
+src/Mike.s: src/Mike.cpp.s
+.PHONY : src/Mike.s
+
+# target to generate assembly for a file
+src/Mike.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Computer-graphics-project.dir/build.make CMakeFiles/Computer-graphics-project.dir/src/Mike.cpp.s
+.PHONY : src/Mike.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -254,12 +302,18 @@ help:
 	@echo "... src/Bullet.o"
 	@echo "... src/Bullet.i"
 	@echo "... src/Bullet.s"
+	@echo "... src/Car.o"
+	@echo "... src/Car.i"
+	@echo "... src/Car.s"
 	@echo "... src/Entity.o"
 	@echo "... src/Entity.i"
 	@echo "... src/Entity.s"
 	@echo "... src/Main.o"
 	@echo "... src/Main.i"
 	@echo "... src/Main.s"
+	@echo "... src/Mike.o"
+	@echo "... src/Mike.i"
+	@echo "... src/Mike.s"
 .PHONY : help
 
 
