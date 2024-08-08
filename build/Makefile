@@ -190,6 +190,30 @@ src/Bullet.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Computer-graphics-project.dir/build.make CMakeFiles/Computer-graphics-project.dir/src/Bullet.cpp.s
 .PHONY : src/Bullet.cpp.s
 
+src/Entity.o: src/Entity.cpp.o
+.PHONY : src/Entity.o
+
+# target to build an object file
+src/Entity.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Computer-graphics-project.dir/build.make CMakeFiles/Computer-graphics-project.dir/src/Entity.cpp.o
+.PHONY : src/Entity.cpp.o
+
+src/Entity.i: src/Entity.cpp.i
+.PHONY : src/Entity.i
+
+# target to preprocess a source file
+src/Entity.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Computer-graphics-project.dir/build.make CMakeFiles/Computer-graphics-project.dir/src/Entity.cpp.i
+.PHONY : src/Entity.cpp.i
+
+src/Entity.s: src/Entity.cpp.s
+.PHONY : src/Entity.s
+
+# target to generate assembly for a file
+src/Entity.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Computer-graphics-project.dir/build.make CMakeFiles/Computer-graphics-project.dir/src/Entity.cpp.s
+.PHONY : src/Entity.cpp.s
+
 src/Main.o: src/Main.cpp.o
 .PHONY : src/Main.o
 
@@ -230,6 +254,9 @@ help:
 	@echo "... src/Bullet.o"
 	@echo "... src/Bullet.i"
 	@echo "... src/Bullet.s"
+	@echo "... src/Entity.o"
+	@echo "... src/Entity.i"
+	@echo "... src/Entity.s"
 	@echo "... src/Main.o"
 	@echo "... src/Main.i"
 	@echo "... src/Main.s"

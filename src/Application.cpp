@@ -130,9 +130,8 @@ void Application::localInit() {
 	}
 
 	for (int i = 0; i < MAX_BULLET_INSTANCES; ++i) {
-		bullets.push_back({ glm::vec3(glm::vec3(0.0f, -5.0, 0.0f)), glm::vec3(glm::vec3(0.0f, 0.0f, 0.0f)), 0.0f, false });
+		bullets.push_back(Bullet());
 	}
-	fireTimer = 0.0f;
 }
 
 // Initialize pipelines and descriptor sets
@@ -279,7 +278,7 @@ void Application::updateUniformBuffer(uint32_t currentImage) {
 
 	update_car_position(CarPos, carPosition, carSpeed, currentSteeringAngle, carRotation, m, deltaT, FLOOR_DIAM);
 	update_mike_positions(carPosition, mikes, mikeSpawnTimer, deltaT, rng, minRadius, maxRadius, FLOOR_DIAM);
-	update_bullet_positions(carPosition, bullets, glm::vec3(CarPos[2]), fireTimer, deltaT);
+	for(int i = 0; i < bullets.size(); i++) bullets[i].update(deltaT);
 
 	check_collisions_MB(mikes, bullets);
 	if (check_collisions_MC(mikes, carPosition)) health--;
@@ -357,9 +356,9 @@ void Application::updateUniformBuffer(uint32_t currentImage) {
 
 	// Update Bullet uniforms
 	for (size_t i = 0; i < bullets.size(); ++i) {
-		if (bullets[i].isAboveFloor) {
+		if (bullets[i].getIsAboveFloor()) {
 			ToonUniformBufferObject uboBullet{};
-			uboBullet.mMat = glm::translate(glm::mat4(1.0f), bullets[i].position);
+			uboBullet.mMat = glm::translate(glm::mat4(1.0f), bullets[i].getPosition());
 			uboBullet.mvpMat = ViewPrj * uboBullet.mMat;
 			uboBullet.nMat = glm::inverse(glm::transpose(uboBullet.mMat));
 			DSBullets[i].map(currentImage, &uboBullet, 0);
@@ -380,42 +379,6 @@ void Application::updateUniformBuffer(uint32_t currentImage) {
 	DSSkyBox.map(currentImage, &uboSky, 0);
 }
 
-void Application::update_bullet_positions(glm::vec3 carPos, std::vector<BulletInstance>& bullets, glm::vec3 direction, float& fireTimer, float deltaT)
-{
-	// Update Bullet instances
-	fireTimer += deltaT;
-
-	if (fireTimer >= 0.4f)
-	{
-		fireTimer = 0.0;
-		for (auto& bullet : bullets)
-		{
-			if (!bullet.isAboveFloor)
-			{
-				bullet.position = carPos;
-				bullet.isAboveFloor = true;
-				bullet.dir = direction;
-				bullet.dir.y = 0.0f;
-				bullet.lifetime = 0.0f;
-				break;
-			}
-		}
-	}
-	for (auto& bullet : bullets)
-	{
-		if (bullet.isAboveFloor)
-		{
-			bullet.position += bullet.dir * 5.0f * deltaT;
-			bullet.lifetime += deltaT;
-			if (bullet.lifetime >= 2.0f)
-			{
-				bullet.isAboveFloor = false;
-				bullet.position.y = -2.0f;
-			}
-		}
-	}
-
-}
 
 void Application::update_car_position(glm::mat4& CarPos, glm::vec3& carPosition, float& carSpeed, float& currentSteeringAngle, float& carRotation, glm::vec3& m, const float deltaT, const float floordiam)
 {
@@ -550,21 +513,19 @@ void Application::update_mike_positions(const glm::vec3& carPosition, std::vecto
 	}
 }
 
-void Application::check_collisions_MB(std::vector<MikeInstance>& mikes, std::vector<BulletInstance>& bullets)
+void Application::check_collisions_MB(std::vector<MikeInstance>& mikes, std::vector<Bullet>& bullets)
 {
 	for (auto& mike : mikes)
 	{
 		for (auto& bullet : bullets)
 		{
-			if (mike.isAboveFloor && bullet.isAboveFloor)
+			if (mike.isAboveFloor && bullet.getIsAboveFloor())
 			{
-				if (glm::distance(mike.position, bullet.position) <= 0.5)
+				if (glm::distance(mike.position, bullet.getPosition()) <= 0.5)
 				{
 					mike.isDamaged = true;
 					mike.damageTimer = 0.0;
-					bullet.isAboveFloor = false;
-					bullet.lifetime = 0.0;
-					bullet.position.y = -2.0;
+					bullet.explode();
 				}
 			}
 		}

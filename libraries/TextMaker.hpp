@@ -1,5 +1,7 @@
 #pragma once
 
+#include "starter.hpp"
+
 struct SingleText {
 	int usedLines;
 	const char* l[4];
