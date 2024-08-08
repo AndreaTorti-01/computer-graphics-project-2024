@@ -451,4 +451,5 @@ CMakeFiles/Computer-graphics-project.dir/src/Main.cpp.o: \
  /home/comodino/computer-graphics-project-2024/include/Mike.hpp \
  /usr/include/c++/14.2.1/random /usr/include/c++/14.2.1/bits/random.h \
  /usr/include/c++/14.2.1/x86_64-pc-linux-gnu/bits/opt_random.h \
- /usr/include/c++/14.2.1/bits/random.tcc
+ /usr/include/c++/14.2.1/bits/random.tcc \
+ /home/comodino/computer-graphics-project-2024/include/TimeManager.hpp

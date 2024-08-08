@@ -11,6 +11,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/Computer-graphics-project.dir/src/Main.cpp.o.d"
   "CMakeFiles/Computer-graphics-project.dir/src/Mike.cpp.o"
   "CMakeFiles/Computer-graphics-project.dir/src/Mike.cpp.o.d"
+  "CMakeFiles/Computer-graphics-project.dir/src/TimeManager.cpp.o"
+  "CMakeFiles/Computer-graphics-project.dir/src/TimeManager.cpp.o.d"
   "Computer-graphics-project"
   "Computer-graphics-project.pdb"
 )

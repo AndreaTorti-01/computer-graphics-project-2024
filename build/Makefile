@@ -286,6 +286,30 @@ src/Mike.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Computer-graphics-project.dir/build.make CMakeFiles/Computer-graphics-project.dir/src/Mike.cpp.s
 .PHONY : src/Mike.cpp.s
 
+src/TimeManager.o: src/TimeManager.cpp.o
+.PHONY : src/TimeManager.o
+
+# target to build an object file
+src/TimeManager.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Computer-graphics-project.dir/build.make CMakeFiles/Computer-graphics-project.dir/src/TimeManager.cpp.o
+.PHONY : src/TimeManager.cpp.o
+
+src/TimeManager.i: src/TimeManager.cpp.i
+.PHONY : src/TimeManager.i
+
+# target to preprocess a source file
+src/TimeManager.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Computer-graphics-project.dir/build.make CMakeFiles/Computer-graphics-project.dir/src/TimeManager.cpp.i
+.PHONY : src/TimeManager.cpp.i
+
+src/TimeManager.s: src/TimeManager.cpp.s
+.PHONY : src/TimeManager.s
+
+# target to generate assembly for a file
+src/TimeManager.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Computer-graphics-project.dir/build.make CMakeFiles/Computer-graphics-project.dir/src/TimeManager.cpp.s
+.PHONY : src/TimeManager.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -314,6 +338,9 @@ help:
 	@echo "... src/Mike.o"
 	@echo "... src/Mike.i"
 	@echo "... src/Mike.s"
+	@echo "... src/TimeManager.o"
+	@echo "... src/TimeManager.i"
+	@echo "... src/TimeManager.s"
 .PHONY : help
 
 
