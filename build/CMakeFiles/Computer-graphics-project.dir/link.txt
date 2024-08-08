@@ -1,1 +1,1 @@
-/usr/bin/c++ "CMakeFiles/Computer-graphics-project.dir/src/Application.cpp.o" "CMakeFiles/Computer-graphics-project.dir/src/Main.cpp.o" -o Computer-graphics-project  -lglm /lib/libvulkan.so /usr/lib/libglfw.so.3.4
+/usr/bin/c++ "CMakeFiles/Computer-graphics-project.dir/src/Application.cpp.o" "CMakeFiles/Computer-graphics-project.dir/src/Bullet.cpp.o" "CMakeFiles/Computer-graphics-project.dir/src/Main.cpp.o" -o Computer-graphics-project  -lglm /lib/libvulkan.so /usr/lib/libglfw.so.3.4

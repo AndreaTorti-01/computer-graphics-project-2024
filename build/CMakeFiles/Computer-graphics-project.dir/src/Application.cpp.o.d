@@ -375,6 +375,10 @@ CMakeFiles/Computer-graphics-project.dir/src/Application.cpp.o: \
  /usr/include/c++/14.1.1/pstl/execution_defs.h \
  /usr/include/c++/14.1.1/bitset \
  /home/comodino/computer-graphics-project-2024/libraries/TextMaker.hpp \
+ /home/comodino/computer-graphics-project-2024/include/Bullet.hpp \
+ /home/comodino/computer-graphics-project-2024/include/Entity.hpp \
+ /home/comodino/computer-graphics-project-2024/libraries/glm_with_defines.hpp \
+ /home/comodino/computer-graphics-project-2024/include/Utils.hpp \
  /usr/include/c++/14.1.1/random /usr/include/c++/14.1.1/bits/random.h \
  /usr/include/c++/14.1.1/x86_64-pc-linux-gnu/bits/opt_random.h \
  /usr/include/c++/14.1.1/bits/random.tcc /usr/include/c++/14.1.1/numeric \

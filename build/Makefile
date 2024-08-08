@@ -166,6 +166,30 @@ src/Application.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Computer-graphics-project.dir/build.make CMakeFiles/Computer-graphics-project.dir/src/Application.cpp.s
 .PHONY : src/Application.cpp.s
 
+src/Bullet.o: src/Bullet.cpp.o
+.PHONY : src/Bullet.o
+
+# target to build an object file
+src/Bullet.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Computer-graphics-project.dir/build.make CMakeFiles/Computer-graphics-project.dir/src/Bullet.cpp.o
+.PHONY : src/Bullet.cpp.o
+
+src/Bullet.i: src/Bullet.cpp.i
+.PHONY : src/Bullet.i
+
+# target to preprocess a source file
+src/Bullet.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Computer-graphics-project.dir/build.make CMakeFiles/Computer-graphics-project.dir/src/Bullet.cpp.i
+.PHONY : src/Bullet.cpp.i
+
+src/Bullet.s: src/Bullet.cpp.s
+.PHONY : src/Bullet.s
+
+# target to generate assembly for a file
+src/Bullet.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Computer-graphics-project.dir/build.make CMakeFiles/Computer-graphics-project.dir/src/Bullet.cpp.s
+.PHONY : src/Bullet.cpp.s
+
 src/Main.o: src/Main.cpp.o
 .PHONY : src/Main.o
 
@@ -203,6 +227,9 @@ help:
 	@echo "... src/Application.o"
 	@echo "... src/Application.i"
 	@echo "... src/Application.s"
+	@echo "... src/Bullet.o"
+	@echo "... src/Bullet.i"
+	@echo "... src/Bullet.s"
 	@echo "... src/Main.o"
 	@echo "... src/Main.i"
 	@echo "... src/Main.s"
