@@ -4,8 +4,12 @@
 #include "starter.hpp"
 #include "TextMaker.hpp"
 #include "Bullet.hpp"
+#include "Car.hpp"
+#include "Mike.hpp"
+#include "TimeManager.hpp"
 
 #include <vector>
+#include <array>
 #include <random>
 
 // Main application class
@@ -47,26 +51,16 @@ protected:
 	glm::mat4 CarPos;
 
 	// Mike instances
-	std::vector<MikeInstance> mikes;
-	std::vector<Bullet> bullets;
+	std::array<Mike, MAX_MIKE_INSTANCES> mikes;
+	Car car;
+	TimeManager timeManager;
 	std::vector<DescriptorSet> DSMikes;
 	std::vector<DescriptorSet> DSBullets;
-	float mikeSpawnTimer = 0.0f;
-	float fireTimer = 0.0f;
-	std::mt19937 rng;  // Random number generator
-	std::uniform_real_distribution<float> uniformDist;
 
 	// Descriptor pool sizes
 	int totalUniformBlocks = 0;
 	int totalTextures = 0;
 	int totalSets = 0;
-
-	// RNG
-	std::random_device rd;
-
-	// mike spawn radii
-	float minRadius = 3.0f;
-	float maxRadius = 7.0f;
 
 	// Text to be displayed on screen
 	std::vector<SingleText> outText = {
@@ -101,16 +95,10 @@ protected:
 
 	void calculateDescriptorPoolSizes();
 
-	void update_bullet_positions(glm::vec3 carPos, std::vector<Bullet>& bullets, glm::vec3 direction, float& fireTimer, float deltaT);
-
-	void update_car_position(glm::mat4& CarPos, glm::vec3& carPosition, float& carSpeed, float& currentSteeringAngle, float& carRotation, glm::vec3& m, const float deltaT, const float floordiam);
-
 	// Function to generate a random position around the car within the floor boundaries
-	glm::vec3 generateRandomPosition(const glm::vec3& carPosition, const float minRadius, const float maxRadius, std::mt19937& rng, const float floorDiam);
+	glm::vec3 generateRandomPosition(Car car, const float minRadius, const float maxRadius, std::mt19937& rng, const float floorDiam);
 
-	void update_mike_positions(const glm::vec3& carPosition, std::vector<MikeInstance>& mikes, float& mikeSpawnTimer, const float deltaT, std::mt19937& rng, const float minRadius, const float maxRadius, const float floorDiam);
+	void check_collisions_MB(std::array<Mike, MAX_MIKE_INSTANCES>& mikes, std::array<Bullet, MAX_BULLET_INSTANCES> &bullets);
 
-	void check_collisions_MB(std::vector<MikeInstance>& mikes, std::vector<Bullet>& bullets);
-
-	bool check_collisions_MC(std::vector<MikeInstance>& mikes, glm::vec3& CarPosition);
+	void check_collisions_MC(std::array<Mike, MAX_MIKE_INSTANCES>& mikes, Car &car);
 };

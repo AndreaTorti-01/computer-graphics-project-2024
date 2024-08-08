@@ -20,6 +20,11 @@ private:
 
 public:
 	Mike();
-	void update(const glm::vec3& carPosition, float deltaT);
+	void setDamaged(bool damaged);
+	bool getDamaged();
+	void setDamageTimer(float timer);
+	void reset();
+	void spawn(glm::vec3 pos);
+	void update(float deltaT, const glm::vec3& carPosition);
 };
 

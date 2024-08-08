@@ -2,6 +2,7 @@
 
 #include "Entity.hpp"
 #include "Bullet.hpp"
+#include "Mike.hpp"
 #include <array>
 
 class Car :
@@ -15,6 +16,7 @@ private:
 	float maxSteeringAngle;
 	float steeringSpeed;
 	float wheelbase;
+	glm::mat4 position4;
 
 	// weapons
 	float shootCooldown;
@@ -25,9 +27,17 @@ private:
 	float carSpeed;
 	float currentSteeringAngle;
 
+	int health;
+
 public:
 	Car();
-
-	void update(float deltaTime, const glm::vec3& controls);
+	float getSpeed();
+	void damage();
+	glm::mat4 getPosition4();
+	void setSinceLastShot(float time);
+	float getSinceLastShot();
+	std::array<Bullet, MAX_BULLET_INSTANCES> getBullets();
+	void update(float deltaT, glm::vec3& controls);
+	void check_collisions(std::array<Mike, MAX_MIKE_INSTANCES>& mikes);
 };
 

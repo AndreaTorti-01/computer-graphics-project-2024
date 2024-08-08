@@ -24,6 +24,10 @@ layout(set = 0, binding = 0) uniform BlinnUniformBufferObject {
 gubo;
 
 layout(set = 1, binding = 1) uniform sampler2D texSampler;
+layout(set = 1, binding = 2) uniform MikeParUniformBufferObject {
+	float showDamage;
+}
+pubo;
 
 vec3 point_light_dir(vec3 pos, int i) {
   // Point light - direction vector
@@ -85,5 +89,5 @@ void main() {
 
    
 
-  outColor = vec4(col + Ambient, 1.0f);
+  outColor = vec4(col + Ambient + vec3(1.0f,0.0f,0.0f) * pubo.showDamage, 1.0f);
 }

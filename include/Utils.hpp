@@ -5,15 +5,10 @@
 #include <glm_with_defines.hpp>
 
 constexpr auto MAX_MIKE_INSTANCES = 15;
-constexpr auto MAX_BULLET_INSTANCES = 8;
+constexpr auto MAX_BULLET_INSTANCES = 3;
 constexpr auto FLOOR_DIAM = 32.0f; // multiple of 2
 constexpr auto NLIGHTS = 2;
-
-// Text to be displayed on screen
-inline std::vector<SingleText> outText = {
-	{2, {" ", " ", "", ""}, 0, 0},
-	{1, {" ", "", "", ""}, 0, 0}
-};
+constexpr auto MAX_SPEED = 10.0f;
 
 // Uniform buffer object for toon shading
 struct ToonUniformBufferObject {
