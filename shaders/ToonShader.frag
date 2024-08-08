@@ -41,6 +41,12 @@ vec3 point_light_color(vec3 pos, int i) {
          pow(gubo.lightColor[i].a / length(gubo.lightDir[i] - pos), 1.0);
 }
 
+float edge_detection(){
+  float edge = dot(abs(dFdx(fragPos)), vec3(1.0)) +dot(abs(dFdy(fragPos)),vec3(1.0));
+  if(edge > 0.08) edge = 1.0;
+  return edge;
+}
+
 vec3 BRDF(vec3 V, vec3 N, vec3 L, vec3 Md) {
 
   vec3 Diffuse = Md * clamp(dot(N, L), 0.0, 1.0);
@@ -80,10 +86,8 @@ void main() {
 
    for(int i=0; i<2; i++){
 	if(gubo.type[i] == 0) col += BRDF(EyeDir, Norm, gubo.lightDir[i], Albedo) * gubo.lightColor[i].rgb;
-	else col += BRDF(EyeDir, Norm, point_light_dir(fragPos, i), Albedo) * point_light_color(fragPos,i);
+	  else col += BRDF(EyeDir, Norm, point_light_dir(fragPos, i), Albedo) * point_light_color(fragPos,i);
    }
-
-   
-
-  outColor = vec4(col + Ambient, 1.0f);
+  if(edge_detection()!=1.0) outColor = vec4(col + Ambient, 1.0f);
+  else outColor = vec4(0.0f);
 }
