@@ -56,9 +56,9 @@ void Application::calculateDescriptorPoolSizes()
 	totalSets += 5;
 
 	// Set the calculated values
-	DPSZs.uniformBlocksInPool = totalUniformBlocks;
-	DPSZs.texturesInPool = totalTextures;
-	DPSZs.setsInPool = totalSets;
+	DPSZs.uniformBlocksInPool = totalUniformBlocks * 10;
+	DPSZs.texturesInPool = totalTextures* 10;
+	DPSZs.setsInPool = totalSets* 10;
 }
 
 // Initialization of local resources
@@ -115,7 +115,6 @@ void Application::localInit()
 // Initialize pipelines and descriptor sets
 void Application::pipelinesAndDescriptorSetsInit()
 {
-
 	// Create pipelines
 	PBW.create();
 	PToon.create();
@@ -301,15 +300,21 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 	// Update global uniforms
 	GlobalUniformBufferObject uboGlobal{};
 	uboGlobal.eyePos = glm::vec3(glm::inverse(ViewMatrix) * glm::vec4(0, 0, 0, 1));
+	uboGlobal.lightPos[0] = glm::vec3(0.0f);
+ 	uboGlobal.lightDir[0] = glm::vec3(0.0f, -1.0f, 0.0f);
 
-	uboGlobal.lightDir[0] = glm::vec3(0.0f, -1.0f, 0.0f);
-	uboGlobal.lightColor[0] = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+	uboGlobal.lightColor[0] = glm::vec4(0.0f);
 	uboGlobal.type[0] = 0;
 
-	uboGlobal.lightDir[1] = glm::vec3(5.0f, 4.0f, 5.0f);
-	uboGlobal.lightColor[1] = glm::vec4(1.0f);
-	uboGlobal.type[1] = 1;
+	for (int i= 0; i < MAX_MIKE_INSTANCES; i++)
+	{
+		uboGlobal.lightDir[i+1] = glm::vec3(0.0f, 0.0f, 0.0f);
 
+		uboGlobal.lightPos[i+1] = mikes[i].getPosition();
+		uboGlobal.lightPos[i+1].z = 2.0f;
+		uboGlobal.lightColor[i+1] = glm::vec4(1.0f);
+		uboGlobal.type[i+1] = 1;
+	}
 	DSGlobal.map(currentImage, &uboGlobal, 0);
 
 	// Update Car uniforms

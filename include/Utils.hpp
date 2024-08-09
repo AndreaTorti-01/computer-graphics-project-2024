@@ -7,7 +7,7 @@
 constexpr auto MAX_MIKE_INSTANCES = 15;
 constexpr auto MAX_BULLET_INSTANCES = 3;
 constexpr auto FLOOR_DIAM = 32.0f; // multiple of 2
-constexpr auto NLIGHTS = 2;
+constexpr auto NLIGHTS = 16;
 constexpr auto MAX_SPEED = 10.0f;
 
 // Uniform buffer object for toon shading
@@ -29,10 +29,11 @@ struct SkyBoxUniformBufferObject {
 
 struct GlobalUniformBufferObject
 {
-	alignas(16) glm::vec3 lightDir[NLIGHTS];  // in case of a point light, lightDir isn't it's direction, but the position
+	alignas(16) glm::vec3 lightDir[NLIGHTS]; 
+	alignas(16) glm::vec3 lightPos[NLIGHTS];
 	alignas(16) glm::vec4 lightColor[NLIGHTS];
 	alignas(16) glm::vec3 eyePos;
-	alignas(4)  int type[NLIGHTS]; // 0 global, 1 point
+	alignas(int)  int type[NLIGHTS]; // 0 global, 1 point
 };
 
 // Vertex structure for generic objects

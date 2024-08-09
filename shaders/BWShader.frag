@@ -16,10 +16,11 @@ layout(location = 0) out vec4 outColor;
 // binding 2) are used. Note that each definition must match the one used in the
 // CPP code
 layout(set = 0, binding = 0) uniform BlinnUniformBufferObject {
-  vec3 lightDir[2];
-  vec4 lightColor[2];
+  vec3 lightDir[16];
+  vec3 lightPos[16];
+  vec4 lightColor[16];
   vec3 eyePos;
-  int type[2];
+  int type[16];
 }
 gubo;
 
