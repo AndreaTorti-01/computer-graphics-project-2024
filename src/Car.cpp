@@ -15,6 +15,7 @@ Car::Car()
 	health = 20;
 	position = glm::vec3(0.0f, 0.0f, 0.0f);
 	position4 = glm::mat4(1.0f);
+	rotation = 0.0f;
 }
 
 float Car::getSpeed() { return carSpeed; }
