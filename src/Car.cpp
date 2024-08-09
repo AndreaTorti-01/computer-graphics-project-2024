@@ -13,12 +13,17 @@ Car::Car()
     timeSinceLastShot = 0.0f;
     carSpeed = 0.0f;
     currentSteeringAngle = 0.0f;
-    health = 20;
+    health = 5;
+    score = 0;
     position = glm::vec3(0.0f, 0.0f, 0.0f);
     position4 = glm::mat4(1.0f);
 }
 
 float Car::getSpeed() { return carSpeed; }
+
+int Car::getHealth() { return health; }
+
+int Car::getScore() { return score; }
 
 glm::mat4 Car::getPosition4() { return position4; }
 
@@ -152,6 +157,7 @@ void Car::check_collisions(std::array<Mike, MAX_MIKE_INSTANCES> &mikes)
                     mike.setDamaged(true);
                     mike.setDamageTimer(0.0f);
                     bullet.explode();
+                    score++;
                 }
             }
         }

@@ -11,6 +11,7 @@
 #include <vector>
 #include <array>
 #include <random>
+#include <string>
 
 // Main application class
 class Application : public BaseProject {
@@ -36,9 +37,9 @@ protected:
 
 	// Application parameters
 	int currScene = 0;
-	int subpass = 0;
 	int score = 0;
 	int health = 10;
+
 
 	// Camera parameters
 	glm::vec3 CamPos = glm::vec3(0.0, 1.5, 7.0);
@@ -60,13 +61,10 @@ protected:
 	// Descriptor pool sizes
 	int totalUniformBlocks = 0;
 	int totalTextures = 0;
-	int totalSets = 0;
+	int totalSets = 0;	
 
 	// Text to be displayed on screen
-	std::vector<SingleText> outText = {
-		{2, {" ", " ", "", ""}, 0, 0},
-		{1, {" ", "", "", ""}, 0, 0}
-	};
+	std::vector<SingleText> outText;
 
 	// Window parameters setup
 	void setWindowParameters() override;

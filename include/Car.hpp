@@ -28,10 +28,13 @@ private:
 	float currentSteeringAngle;
 
 	int health;
+	int score;
 
 public:
 	Car();
 	float getSpeed();
+	int getHealth();
+	int getScore();
 	void damage();
 	glm::mat4 getPosition4();
 	void setSinceLastShot(float time);

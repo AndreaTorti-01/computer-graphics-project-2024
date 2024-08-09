@@ -57,8 +57,8 @@ void Application::calculateDescriptorPoolSizes()
 
 	// Set the calculated values
 	DPSZs.uniformBlocksInPool = totalUniformBlocks * 10;
-	DPSZs.texturesInPool = totalTextures* 10;
-	DPSZs.setsInPool = totalSets* 10;
+	DPSZs.texturesInPool = totalTextures * 10;
+	DPSZs.setsInPool = totalSets * 10;
 }
 
 // Initialization of local resources
@@ -106,6 +106,12 @@ void Application::localInit()
 	calculateDescriptorPoolSizes();
 
 	// Initialize text
+	outText.resize(3);
+	outText = {
+		{3, {"Press SPACE to start", " ", "", ""}, 0, 0},
+		{2, {"Evade the mikes", "And kill em all", "", ""}, 0, 0},
+		{1, {"GAME OVER", "press ESC to close", "", ""}, 0, 0}
+	};
 	txt.init(this, &outText);
 
 	// Initialize matrices
@@ -241,11 +247,30 @@ void Application::populateCommandBuffer(VkCommandBuffer commandBuffer, int curre
 // Update uniform buffers
 void Application::updateUniformBuffer(uint32_t currentImage)
 {
+
+	if (currScene == 0)
+	{
+		if (glfwGetKey(window, GLFW_KEY_SPACE))
+		{
+			currScene = 1;
+			RebuildPipeline();
+		}
+		return;
+	}
+	if (currScene == 2)
+	{
+		if (glfwGetKey(window, GLFW_KEY_ESCAPE))
+		{
+			glfwSetWindowShouldClose(window, 1);
+		}
+		return;
+	}
+
 	float deltaT;
 	glm::vec3 m = glm::vec3(0.0f), r = glm::vec3(0.0f);
 	bool fire = false;
 
-	if (glfwGetKey(window, GLFW_KEY_C))
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE))
 	{
 		glfwSetWindowShouldClose(window, 1);
 		return;
@@ -262,15 +287,9 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 		mike.update(deltaT, car.getPosition());
 
 	car.check_collisions(mikes);
-
-	// Time-related variables for light movement
-	static float autoTime = true;
-	static float cTime = 0.0;
-	const float turnTime = 72.0f;
-	const float angTurnTimeFact = 2.0f * M_PI / turnTime;
-	if (autoTime)
-	{
-		cTime = std::fmod(cTime + deltaT, turnTime);
+	if(car.getHealth()<=0) {
+		RebuildPipeline();	
+		currScene = 2;
 	}
 
 	// Camera position (static relative to the car)
@@ -301,19 +320,19 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 	GlobalUniformBufferObject uboGlobal{};
 	uboGlobal.eyePos = glm::vec3(glm::inverse(ViewMatrix) * glm::vec4(0, 0, 0, 1));
 	uboGlobal.lightPos[0] = glm::vec3(0.0f);
- 	uboGlobal.lightDir[0] = glm::vec3(0.0f, -1.0f, 0.0f);
+	uboGlobal.lightDir[0] = glm::vec3(0.0f, -1.0f, 0.0f);
 
 	uboGlobal.lightColor[0] = glm::vec4(0.0f);
 	uboGlobal.type[0] = 0;
 
-	for (int i= 0; i < MAX_MIKE_INSTANCES; i++)
+	for (int i = 0; i < MAX_MIKE_INSTANCES; i++)
 	{
-		uboGlobal.lightDir[i+1] = glm::vec3(0.0f, 0.0f, 0.0f);
+		uboGlobal.lightDir[i + 1] = glm::vec3(0.0f, 0.0f, 0.0f);
 
-		uboGlobal.lightPos[i+1] = mikes[i].getPosition();
-		uboGlobal.lightPos[i+1].z = 2.0f;
-		uboGlobal.lightColor[i+1] = glm::vec4(1.0f);
-		uboGlobal.type[i+1] = 1;
+		uboGlobal.lightPos[i + 1] = mikes[i].getPosition();
+		uboGlobal.lightPos[i + 1].z = 2.0f;
+		uboGlobal.lightColor[i + 1] = glm::vec4(1.0f);
+		uboGlobal.type[i + 1] = 1;
 	}
 	DSGlobal.map(currentImage, &uboGlobal, 0);
 
