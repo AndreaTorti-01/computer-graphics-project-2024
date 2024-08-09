@@ -3,8 +3,8 @@
 // Window parameters setup
 void Application::setWindowParameters()
 {
-	windowWidth = 800;
-	windowHeight = 600;
+	windowWidth = 1280;
+	windowHeight = 720;
 	windowTitle = "CG Project";
 	windowResizable = GLFW_TRUE;
 	initialBackgroundColor = {0.1f, 0.1f, 0.1f, 1.0f};

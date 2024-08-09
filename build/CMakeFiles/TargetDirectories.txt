@@ -1,4 +1,0 @@
-/home/comodino/computer-graphics-project-2024/build/CMakeFiles/Computer-graphics-project.dir
-/home/comodino/computer-graphics-project-2024/build/CMakeFiles/ShadersTarget.dir
-/home/comodino/computer-graphics-project-2024/build/CMakeFiles/edit_cache.dir
-/home/comodino/computer-graphics-project-2024/build/CMakeFiles/rebuild_cache.dir
