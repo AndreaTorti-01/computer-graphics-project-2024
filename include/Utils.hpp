@@ -11,41 +11,58 @@ constexpr auto NLIGHTS = 16;
 constexpr auto MAX_SPEED = 10.0f;
 
 // Uniform buffer object for toon shading
-struct ToonUniformBufferObject {
-	alignas(16) glm::mat4 mvpMat;  // Model-View-Projection matrix
-	alignas(16) glm::mat4 mMat;    // Model matrix
-	alignas(16) glm::mat4 nMat;    // Normal matrix
+struct ToonUniformBufferObject
+{
+	alignas(16) glm::mat4 mvpMat; // Model-View-Projection matrix
+	alignas(16) glm::mat4 mMat;	  // Model matrix
+	alignas(16) glm::mat4 nMat;	  // Normal matrix
 };
 
 // Parameters for improved visuals of Mikes
-struct MikeParUniformBufferObject {
+struct MikeParUniformBufferObject
+{
 	alignas(4) float showDamage;
 };
 
 // Uniform buffer object for skybox
-struct SkyBoxUniformBufferObject {
-	alignas(16) glm::mat4 mvpMat;  // Model-View-Projection matrix for skybox
+struct SkyBoxUniformBufferObject
+{
+	alignas(16) glm::mat4 mvpMat; // Model-View-Projection matrix for skybox
 };
 
 struct GlobalUniformBufferObject
 {
-	alignas(16) glm::vec3 lightDir[NLIGHTS]; 
-	alignas(16) glm::vec3 lightPos[NLIGHTS];
-	alignas(16) glm::vec4 lightColor[NLIGHTS];
+	struct
+	{
+		alignas(16) glm::vec3 v;
+	} lightDir[NLIGHTS];
+	struct
+	{
+		alignas(16) glm::vec3 v;
+	} lightPos[NLIGHTS];
+	struct
+	{
+		alignas(16) glm::vec4 v;
+	} lightColor[NLIGHTS];
 	alignas(16) glm::vec3 eyePos;
-	alignas(int)  int type[NLIGHTS]; // 0 global, 1 point
+	struct
+	{
+		alignas(4) float t;
+	} type[NLIGHTS]; // 0 global, 1 point
 };
 
 // Vertex structure for generic objects
-struct GenericVertex {
-	glm::vec3 pos;   // Position
-	glm::vec3 norm;  // Normal
-	glm::vec2 UV;    // Texture coordinates
+struct GenericVertex
+{
+	glm::vec3 pos;	// Position
+	glm::vec3 norm; // Normal
+	glm::vec2 UV;	// Texture coordinates
 };
 
 // Vertex structure for skybox
-struct SkyBoxVertex {
-	glm::vec3 pos;   // Position (only position is needed for skybox)
+struct SkyBoxVertex
+{
+	glm::vec3 pos; // Position (only position is needed for skybox)
 };
 
 // Structure to represent an instance of Mike

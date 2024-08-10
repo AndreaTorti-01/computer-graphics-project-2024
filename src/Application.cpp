@@ -319,20 +319,19 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 	// Update global uniforms
 	GlobalUniformBufferObject uboGlobal{};
 	uboGlobal.eyePos = glm::vec3(glm::inverse(ViewMatrix) * glm::vec4(0, 0, 0, 1));
-	uboGlobal.lightPos[0] = glm::vec3(0.0f);
-	uboGlobal.lightDir[0] = glm::vec3(0.0f, -1.0f, 0.0f);
 
-	uboGlobal.lightColor[0] = glm::vec4(0.0f);
-	uboGlobal.type[0] = 0;
+	uboGlobal.lightPos[0].v = glm::vec3(0.0f);
+	uboGlobal.lightDir[0].v = glm::vec3(0.0f, 1.0f, 0.0f);
+	uboGlobal.lightColor[0].v = glm::vec4(0.6f);
+	uboGlobal.type[0].t = 0.0f;
 
-	for (int i = 0; i < MAX_MIKE_INSTANCES; i++)
+	for (int i = 0; i < NLIGHTS-1; i++)
 	{
-		uboGlobal.lightDir[i + 1] = glm::vec3(0.0f, 0.0f, 0.0f);
+		uboGlobal.lightDir[i+1].v = glm::vec3(0.0f, 0.0f, 0.0f);
 
-		uboGlobal.lightPos[i + 1] = mikes[i].getPosition();
-		uboGlobal.lightPos[i + 1].z = 2.0f;
-		uboGlobal.lightColor[i + 1] = glm::vec4(1.0f);
-		uboGlobal.type[i + 1] = 1;
+		uboGlobal.lightPos[i+1].v = mikes[i].getPosition() + glm::vec3(0.0f, 1.0f, 0.0f);
+		uboGlobal.lightColor[i+1].v = glm::vec4(0.8f);
+		uboGlobal.type[i+1].t = 1.0f;
 	}
 	DSGlobal.map(currentImage, &uboGlobal, 0);
 

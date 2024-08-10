@@ -20,7 +20,7 @@ layout(set = 0, binding = 0) uniform GlobalUniformBufferObject {
   vec3 lightPos[16];
   vec4 lightColor[16];
   vec3 eyePos;
-  int type[16];
+  float type[16];
 }
 gubo;
 
@@ -31,12 +31,15 @@ vec3 point_light_dir(vec3 pos, int i) {
 }
 
 vec3 point_light_color(vec3 pos, int i) {
-  return gubo.lightColor[i].rgb * gubo.lightColor[i].a / length(gubo.lightPos[i] - pos);
+  return gubo.lightColor[i].rgb * pow(gubo.lightColor[i].a /
+         length(gubo.lightPos[i] - pos), 3.0f);
 }
 
-float edge_detection(){
-  float edge = dot(abs(dFdx(fragPos)), vec3(1.0)) +dot(abs(dFdy(fragPos)),vec3(1.0));
-  if(edge > 0.08) edge = 1.0;
+float edge_detection() {
+  float edge =
+      dot(abs(dFdx(fragPos)), vec3(1.0)) + dot(abs(dFdy(fragPos)), vec3(1.0));
+  if (edge > 0.08)
+    edge = 1.0;
   return edge;
 }
 
@@ -46,12 +49,17 @@ vec3 BRDF(vec3 V, vec3 N, vec3 L, vec3 Md) {
 
   float index = clamp(dot(N, L), 0.0, 1.0);
 
-  if (index <= 0.0) Diffuse = vec3(0);
-  else if (index > 0   && index <= 0.1) Diffuse = Md * index * 1.5;
-  else if (index > 0.1 && index <= 0.7) Diffuse = Md * 0.15;
-  else if (index > 0.7 && index <= 0.8) Diffuse = Md * (((index - 0.7) * 8.5) + 0.15);
-  else Diffuse = Md;
-  Diffuse = Md * clamp(dot(N, L), 0.0, 1.0);
+  if (index <= 0.0)
+    Diffuse = vec3(0);
+  else if (index > 0 && index <= 0.1)
+    Diffuse = Md * index * 1.5;
+  else if (index > 0.1 && index <= 0.7)
+    Diffuse = Md * 0.15;
+  else if (index > 0.7 && index <= 0.8)
+    Diffuse = Md * (((index - 0.7) * 8.5) + 0.15);
+  else
+    Diffuse = Md;
+
   return (Diffuse);
 }
 
@@ -61,7 +69,6 @@ void main() {
   vec3 Norm = normalize(fragNorm);
   vec3 EyeDir = normalize(gubo.eyePos - fragPos);
   vec3 Albedo = texture(texSampler, fragUV).rgb;
-
 
   const vec3 cxp = vec3(1.0, 0.5, 0.5) * 0.15;
   const vec3 cxn = vec3(0.9, 0.6, 0.4) * 0.15;
@@ -75,16 +82,21 @@ void main() {
                   (Norm.z > 0 ? czp : czn) * (Norm.z * Norm.z)) *
                  Albedo;
 
-   vec3 col = vec3(0.0);
+  vec3 col = vec3(0.0);
 
-   for(int i=0; i<16; i++){
-    switch(gubo.type[i]){
-      case 0: col += BRDF(EyeDir, Norm, gubo.lightDir[i], Albedo) * gubo.lightColor[i].rgb;
-      break;
-      case 1: col += BRDF(EyeDir, Norm, point_light_dir(fragPos,i), Albedo) * point_light_color(fragPos,i);
-      break;
+  if (edge_detection() == 1.0)
+    outColor = vec4(vec3(0.0), 1.0);
+  else {
+
+    for (int i = 0; i < 16; i++) {
+      if (i != 0)
+        col += BRDF(EyeDir, Norm, point_light_dir(fragPos, i), Albedo) *
+               point_light_color(fragPos, i);
+      else
+        col += BRDF(EyeDir, Norm, gubo.lightDir[i], Albedo) *
+               gubo.lightColor[i].rgb;
     }
-   }
 
-  outColor = vec4(col + Ambient, 1.0f);
+    outColor = vec4(col + Ambient, 1.0f);
+  }
 }

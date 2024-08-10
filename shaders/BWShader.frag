@@ -26,24 +26,25 @@ gubo;
 
 layout(set = 1, binding = 1) uniform sampler2D texSampler;
 layout(set = 1, binding = 2) uniform MikeParUniformBufferObject {
-	float showDamage;
+  float showDamage;
 }
 pubo;
 
 vec3 point_light_dir(vec3 pos, int i) {
-  // Point light - direction vector
-  // Position of the light in <gubo.lightPos[i]>
-  return normalize(gubo.lightDir[i] - pos);
+  return normalize(gubo.lightPos[i] - pos);
 }
 
 vec3 point_light_color(vec3 pos, int i) {
-  // Point light - color
-  // Color of the light in <gubo.lightColor[i].rgb>
-  // Scaling factor g in <gubo.lightColor[i].a>
-  // Decay power beta: constant and fixed to 2.0
-  // Position of the light in <gubo.lightPos[i]>
-  return gubo.lightColor[i].rgb *
-         pow(gubo.lightColor[i].a / length(gubo.lightDir[i] - pos), 1.0);
+  return gubo.lightColor[i].rgb * pow(gubo.lightColor[i].a /
+         length(gubo.lightPos[i] - pos), 3.0f);
+}
+
+float edge_detection() {
+  float edge =
+      dot(abs(dFdx(fragPos)), vec3(1.0)) + dot(abs(dFdy(fragPos)), vec3(1.0));
+  if (edge > 0.08)
+    edge = 1.0;
+  return edge;
 }
 
 vec3 BRDF(vec3 V, vec3 N, vec3 L, vec3 Md) {
@@ -52,22 +53,26 @@ vec3 BRDF(vec3 V, vec3 N, vec3 L, vec3 Md) {
 
   float index = clamp(dot(N, L), 0.0, 1.0);
 
-  if (index <= 0.0) Diffuse = vec3(0.0);
-  else if (index > 0   && index <= 0.1) Diffuse = Md * index * 1.5;
-  else if (index > 0.1 && index <= 0.7) Diffuse = Md * 0.15;
-  else if (index > 0.7 && index <= 0.8) Diffuse = Md * (((index - 0.7) * 8.5) + 0.15);
-  else Diffuse = Md;
+  if (index <= 0.0)
+    Diffuse = vec3(0);
+  else if (index > 0 && index <= 0.1)
+    Diffuse = Md * index * 1.5;
+  else if (index > 0.1 && index <= 0.7)
+    Diffuse = Md * 0.15;
+  else if (index > 0.7 && index <= 0.8)
+    Diffuse = Md * (((index - 0.7) * 8.5) + 0.15);
+  else
+    Diffuse = Md;
 
   return (Diffuse);
 }
 
-// The main shader, implementing a simple Blinn + Lambert + constant Ambient
+// The main shader, implementing a simple Global + Lambert + constant Ambient
 // BRDF model The scene is lit by a single Spot Light
 void main() {
   vec3 Norm = normalize(fragNorm);
   vec3 EyeDir = normalize(gubo.eyePos - fragPos);
   vec3 Albedo = texture(texSampler, fragUV).rgb;
-
 
   const vec3 cxp = vec3(1.0, 0.5, 0.5) * 0.15;
   const vec3 cxn = vec3(0.9, 0.6, 0.4) * 0.15;
@@ -81,14 +86,21 @@ void main() {
                   (Norm.z > 0 ? czp : czn) * (Norm.z * Norm.z)) *
                  Albedo;
 
-   vec3 col = vec3(0.0f);
+  vec3 col = vec3(0.0);
 
-   for(int i=0; i<2; i++){
-	if(gubo.type[i] == 0) col += BRDF(EyeDir, Norm, gubo.lightDir[i], Albedo) * gubo.lightColor[i].rgb;
-	else col += BRDF(EyeDir, Norm, point_light_dir(fragPos, i), Albedo) * point_light_color(fragPos,i);
-   }
+  if (edge_detection() == 1.0)
+    outColor = vec4(vec3(0.0), 1.0);
+  else {
 
-   
+    for (int i = 0; i < 16; i++) {
+      if (i != 0)
+        col += BRDF(EyeDir, Norm, point_light_dir(fragPos, i), Albedo) *
+               point_light_color(fragPos, i);
+      else
+        col += BRDF(EyeDir, Norm, gubo.lightDir[i], Albedo) *
+               gubo.lightColor[i].rgb;
+    }
 
-  outColor = vec4(col + Ambient + vec3(1.0f,0.0f,0.0f) * pubo.showDamage, 1.0f);
+    outColor = vec4(col + Ambient + pubo.showDamage * vec3(0.8,0.0,0.0), 1.0f);
+  }
 }

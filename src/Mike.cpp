@@ -24,7 +24,11 @@ Mike::Mike()
 	minRadius = 3.0f;
 	maxRadius = 7.0f;
 	rng = std::mt19937(rd());
-	reset();
+	isAboveFloor = false;
+	isDamaged = false;
+	damageTimer = 0.0;
+	position = glm::vec3(0.0f, -2.0f, 0.0f);
+	rotation = 0.0f;
 }
 
 void Mike::setDamaged(bool damaged) { isDamaged = damaged; }
@@ -40,12 +44,12 @@ void Mike::reset()
 	rotation = 0.0f;
 }
 
-void Mike::spawn(glm::vec3 pos){
+void Mike::spawn(glm::vec3 pos)
+{
 	position = generateRandomPosition(pos);
 	position.y = 0.0f;
 	isAboveFloor = true;
 }
-
 
 void Mike::update(float deltaT, const glm::vec3 &carPosition)
 {
