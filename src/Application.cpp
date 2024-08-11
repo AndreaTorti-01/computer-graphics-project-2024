@@ -7,7 +7,7 @@ void Application::setWindowParameters()
 	windowHeight = 720;
 	windowTitle = "CG Project";
 	windowResizable = GLFW_TRUE;
-	initialBackgroundColor = {0.1f, 0.1f, 0.1f, 1.0f};
+	initialBackgroundColor = { 0.1f, 0.1f, 0.1f, 1.0f };
 	Ar = static_cast<float>(windowWidth) / static_cast<float>(windowHeight);
 }
 
@@ -45,6 +45,11 @@ void Application::calculateDescriptorPoolSizes()
 	totalTextures += 1;
 	totalSets += 1;
 
+	// Grass
+	totalUniformBlocks += 1;
+	totalTextures += 1;
+	totalSets += 1;
+
 	// Skybox
 	totalUniformBlocks += 1;
 	totalTextures += 1;
@@ -67,32 +72,33 @@ void Application::localInit()
 	Ar = static_cast<float>(windowWidth) / static_cast<float>(windowHeight);
 
 	// Initialize Descriptor Set Layouts
-	DSLGlobal.init(this, {{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(GlobalUniformBufferObject), 1}});
-	DSLToon.init(this, {{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(ToonUniformBufferObject), 1},
+	DSLGlobal.init(this, { {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(GlobalUniformBufferObject), 1} });
+	DSLToon.init(this, { {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(ToonUniformBufferObject), 1},
 						{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1},
-						{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(GlobalUniformBufferObject), 1}});
-	DSLBW.init(this, {{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(ToonUniformBufferObject), 1},
+						{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(GlobalUniformBufferObject), 1} });
+	DSLBW.init(this, { {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(ToonUniformBufferObject), 1},
 					  {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1},
 					  {2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(MikeParUniformBufferObject), 1},
-					  {3, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(GlobalUniformBufferObject), 1}});
-	DSLSkyBox.init(this, {{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, sizeof(SkyBoxUniformBufferObject), 1},
-						  {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1}});
+					  {3, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(GlobalUniformBufferObject), 1} });
+	DSLSkyBox.init(this, { {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, sizeof(SkyBoxUniformBufferObject), 1},
+						  {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1} });
 
 	// Initialize Vertex Descriptors
-	VDGeneric.init(this, {{0, sizeof(GenericVertex), VK_VERTEX_INPUT_RATE_VERTEX}}, {{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(GenericVertex, pos), sizeof(glm::vec3), POSITION}, {0, 1, VK_FORMAT_R32G32B32_SFLOAT, offsetof(GenericVertex, norm), sizeof(glm::vec3), NORMAL}, {0, 2, VK_FORMAT_R32G32_SFLOAT, offsetof(GenericVertex, UV), sizeof(glm::vec2), UV}});
-	VDSkyBox.init(this, {{0, sizeof(SkyBoxVertex), VK_VERTEX_INPUT_RATE_VERTEX}}, {{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(SkyBoxVertex, pos), sizeof(glm::vec3), POSITION}});
+	VDGeneric.init(this, { {0, sizeof(GenericVertex), VK_VERTEX_INPUT_RATE_VERTEX} }, { {0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(GenericVertex, pos), sizeof(glm::vec3), POSITION}, {0, 1, VK_FORMAT_R32G32B32_SFLOAT, offsetof(GenericVertex, norm), sizeof(glm::vec3), NORMAL}, {0, 2, VK_FORMAT_R32G32_SFLOAT, offsetof(GenericVertex, UV), sizeof(glm::vec2), UV} });
+	VDSkyBox.init(this, { {0, sizeof(SkyBoxVertex), VK_VERTEX_INPUT_RATE_VERTEX} }, { {0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(SkyBoxVertex, pos), sizeof(glm::vec3), POSITION} });
 
 	// Pipelines [Shader couples]
-	PToon.init(this, &VDGeneric, "shaders/Vert.spv", "shaders/ToonFrag.spv", {&DSLGlobal, &DSLToon});
-	PBW.init(this, &VDGeneric, "shaders/Vert.spv", "shaders/BWFrag.spv", {&DSLGlobal, &DSLBW});
-	PSkyBox.init(this, &VDSkyBox, "shaders/SkyBoxVert.spv", "shaders/SkyBoxFrag.spv", {&DSLSkyBox});
+	PToon.init(this, &VDGeneric, "shaders/Vert.spv", "shaders/ToonFrag.spv", { &DSLGlobal, &DSLToon });
+	PBW.init(this, &VDGeneric, "shaders/Vert.spv", "shaders/BWFrag.spv", { &DSLGlobal, &DSLBW });
+	PSkyBox.init(this, &VDSkyBox, "shaders/SkyBoxVert.spv", "shaders/SkyBoxFrag.spv", { &DSLSkyBox });
 	PSkyBox.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, false);
 
 	// Create Models
 	MCar.init(this, &VDGeneric, "models/Car.gltf", GLTF);
 	MMike.init(this, &VDGeneric, "models/Mike.obj", OBJ);
 	MSkyBox.init(this, &VDSkyBox, "models/SkyBox.obj", OBJ);
-	MFloor.init(this, &VDGeneric, "models/newFloor.obj", OBJ);
+	MFloor.init(this, &VDGeneric, "models/squarefloor128.obj", OBJ);
+	MGrass.init(this, &VDGeneric, "models/outergrass16.obj", OBJ);
 	MBullet.init(this, &VDGeneric, "models/Car.mgcg", MGCG);
 
 	// Initialize Textures
@@ -102,6 +108,7 @@ void Application::localInit()
 	TFloor.init(this, "textures/TCom_Pavement_TerracottaAntique_2K_albedo.jpg");
 	TCar.init(this, "textures/T_Car.jpg");
 	TBullet.init(this, "textures/Textures.png");
+	TGrass.init(this, "textures/grass.jpg");
 
 	calculateDescriptorPoolSizes();
 
@@ -122,19 +129,20 @@ void Application::pipelinesAndDescriptorSetsInit()
 	PSkyBox.create();
 
 	// Initialize descriptor sets
-	DSCar.init(this, &DSLToon, {&TCar});
+	DSCar.init(this, &DSLToon, { &TCar });
 	DSMikes.resize(MAX_MIKE_INSTANCES);
 	for (int i = 0; i < MAX_MIKE_INSTANCES; ++i)
 	{
-		DSMikes[i].init(this, &DSLBW, {&TMike});
+		DSMikes[i].init(this, &DSLBW, { &TMike });
 	}
 	DSBullets.resize(MAX_BULLET_INSTANCES);
 	for (int i = 0; i < MAX_BULLET_INSTANCES; ++i)
 	{
-		DSBullets[i].init(this, &DSLToon, {&TBullet});
+		DSBullets[i].init(this, &DSLToon, { &TBullet });
 	}
-	DSFloor.init(this, &DSLToon, {&TFloor});
-	DSSkyBox.init(this, &DSLSkyBox, {&TSkyBox});
+	DSFloor.init(this, &DSLToon, { &TFloor });
+	DSGrass.init(this, &DSLToon, { &TGrass });
+	DSSkyBox.init(this, &DSLSkyBox, { &TSkyBox });
 	DSGlobal.init(this, &DSLGlobal, {});
 
 	// Initialize text pipelines and descriptor sets
@@ -149,15 +157,16 @@ void Application::pipelinesAndDescriptorSetsCleanup()
 	PBW.cleanup();
 
 	DSCar.cleanup();
-	for (auto &ds : DSMikes)
+	for (auto& ds : DSMikes)
 	{
 		ds.cleanup();
 	}
-	for (auto &ds : DSBullets)
+	for (auto& ds : DSBullets)
 	{
 		ds.cleanup();
 	}
 	DSFloor.cleanup();
+	DSGrass.cleanup();
 	DSSkyBox.cleanup();
 	DSGlobal.cleanup();
 
@@ -173,12 +182,14 @@ void Application::localCleanup()
 	TSkyBox.cleanup();
 	TCar.cleanup();
 	TBullet.cleanup();
+	TGrass.cleanup();
 
 	MCar.cleanup();
 	MMike.cleanup();
 	MSkyBox.cleanup();
 	MFloor.cleanup();
 	MBullet.cleanup();
+	MGrass.cleanup();
 
 	DSLToon.cleanup();
 	DSLBW.cleanup();
@@ -201,6 +212,13 @@ void Application::populateCommandBuffer(VkCommandBuffer commandBuffer, int curre
 	DSGlobal.bind(commandBuffer, PToon, 0, currentImage);
 	DSFloor.bind(commandBuffer, PToon, 1, currentImage);
 	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MFloor.indices.size()), 1, 0, 0, 0);
+
+	// Render Grass
+	PToon.bind(commandBuffer);
+	MGrass.bind(commandBuffer);
+	DSGlobal.bind(commandBuffer, PToon, 0, currentImage);
+	DSGrass.bind(commandBuffer, PToon, 1, currentImage);
+	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MGrass.indices.size()), 1, 0, 0, 0);
 
 	// Render Car
 	PToon.bind(commandBuffer);
@@ -259,7 +277,7 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 	getSixAxis(deltaT, m, r, fire);
 
 	car.update(deltaT, m);
-	for (auto &mike : mikes)
+	for (auto& mike : mikes)
 		mike.update(deltaT, car.getPosition());
 
 	car.check_collisions(mikes);
@@ -293,9 +311,9 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 	{
 		float shakeAmount = 0.004f * (std::abs(car.getSpeed()) - 0.9f * MAX_SPEED) / (0.1f * MAX_SPEED);
 		ViewPrj = glm::translate(ViewPrj, glm::vec3(
-											  0.0f,
-											  shakeAmount * (std::sin(deltaT * 50.0f) + std::cos(deltaT * 47.0f)),
-											  shakeAmount * (std::cos(deltaT * 53.0f) + std::sin(deltaT * 59.0f))));
+			0.0f,
+			shakeAmount * (std::sin(deltaT * 50.0f) + std::cos(deltaT * 47.0f)),
+			shakeAmount * (std::cos(deltaT * 53.0f) + std::sin(deltaT * 59.0f))));
 	}
 
 	// Update global uniforms
@@ -346,11 +364,18 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 
 	// Update Floor uniforms
 	ToonUniformBufferObject uboFloor{};
-	uboFloor.mMat = glm::scale(glm::mat4(1.0f), glm::vec3(FLOOR_DIAM));
+	uboFloor.mMat = glm::mat4(1.0f);
 	uboFloor.mvpMat = ViewPrj * uboFloor.mMat;
 	uboFloor.nMat = glm::transpose(glm::inverse(uboFloor.mMat));
 
 	DSFloor.map(currentImage, &uboFloor, 0);
+
+	// Update Grass uniforms
+	ToonUniformBufferObject uboGrass{};
+	uboGrass.mMat = glm::mat4(1.0f);
+	uboGrass.mvpMat = ViewPrj * uboGrass.mMat;
+	uboGrass.nMat = glm::transpose(glm::inverse(uboGrass.mMat));
+	DSGrass.map(currentImage, &uboGrass, 0);
 
 	// Update Skybox uniforms
 	SkyBoxUniformBufferObject uboSky{};
@@ -358,7 +383,7 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 	DSSkyBox.map(currentImage, &uboSky, 0);
 }
 
-glm::vec3 generateRandomPosition(Car car, const float minRadius, const float maxRadius, std::mt19937 &rng, const float floorDiam)
+glm::vec3 generateRandomPosition(Car car, const float minRadius, const float maxRadius, std::mt19937& rng, const float floorDiam)
 {
 	std::uniform_real_distribution<float> distRadius(minRadius, maxRadius);
 	std::uniform_real_distribution<float> distAngle(0.0f, 2.0f * glm::pi<float>());

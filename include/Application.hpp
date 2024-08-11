@@ -28,11 +28,11 @@ protected:
 	TextMaker txt;
 
 	// Models and textures
-	Model MCar, MMike, MSkyBox, MFloor, MBullet;
-	Texture TGeneric, TMike, TSkyBox, TFloor, TCar, TBullet;
+	Model MCar, MMike, MSkyBox, MFloor, MBullet, MGrass;
+	Texture TGeneric, TMike, TSkyBox, TFloor, TCar, TBullet, TGrass;
 
 	// Descriptor Sets
-	DescriptorSet DSGlobal, DSCar, DSSkyBox, DSFloor;
+	DescriptorSet DSGlobal, DSCar, DSSkyBox, DSFloor, DSGrass;
 
 	// Application parameters
 	int currScene = 0;
