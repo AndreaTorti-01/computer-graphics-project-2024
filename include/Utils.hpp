@@ -6,7 +6,7 @@
 
 constexpr auto MAX_MIKE_INSTANCES = 15;
 constexpr auto MAX_BULLET_INSTANCES = 3;
-constexpr auto FLOOR_DIAM = 32.0f; // multiple of 2
+constexpr auto FLOOR_DIAM = 128.0f; // multiple of 2
 constexpr auto NLIGHTS = 16;
 constexpr auto MAX_SPEED = 10.0f;
 
@@ -23,6 +23,13 @@ struct MikeParUniformBufferObject
 {
 	alignas(4) float showDamage;
 };
+
+struct 	ToonParUniformBufferObject
+{
+	alignas(4) float textureMultiplier;
+	alignas(4) float edgeDetectionOn;
+};
+
 
 // Uniform buffer object for skybox
 struct SkyBoxUniformBufferObject
@@ -44,7 +51,10 @@ struct GlobalUniformBufferObject
 	{
 		alignas(16) glm::vec4 v;
 	} lightColor[NLIGHTS];
+
+
 	alignas(16) glm::vec3 eyePos;
+	
 	struct
 	{
 		alignas(4) float t;

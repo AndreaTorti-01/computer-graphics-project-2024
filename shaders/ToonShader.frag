@@ -26,13 +26,19 @@ gubo;
 
 layout(set = 1, binding = 1) uniform sampler2D texSampler;
 
+layout(set = 1, binding = 2) uniform ToonParUniformBufferObject {
+  float textureMultiplier;
+  float edgeDetectionOn;
+}
+tubo;
+
 vec3 point_light_dir(vec3 pos, int i) {
   return normalize(gubo.lightPos[i] - pos);
 }
 
 vec3 point_light_color(vec3 pos, int i) {
-  return gubo.lightColor[i].rgb * pow(gubo.lightColor[i].a /
-         length(gubo.lightPos[i] - pos), 3.0f);
+  return gubo.lightColor[i].rgb *
+         pow(gubo.lightColor[i].a / length(gubo.lightPos[i] - pos), 3.0f);
 }
 
 float edge_detection() {
@@ -68,7 +74,7 @@ vec3 BRDF(vec3 V, vec3 N, vec3 L, vec3 Md) {
 void main() {
   vec3 Norm = normalize(fragNorm);
   vec3 EyeDir = normalize(gubo.eyePos - fragPos);
-  vec3 Albedo = texture(texSampler, fragUV).rgb;
+  vec3 Albedo = texture(texSampler, fragUV * tubo.textureMultiplier).rgb;
 
   const vec3 cxp = vec3(1.0, 0.5, 0.5) * 0.15;
   const vec3 cxn = vec3(0.9, 0.6, 0.4) * 0.15;
@@ -84,7 +90,7 @@ void main() {
 
   vec3 col = vec3(0.0);
 
-  if (edge_detection() == 1.0)
+  if (tubo.edgeDetectionOn == 1.0 && edge_detection() == 1.0)
     outColor = vec4(vec3(0.0), 1.0);
   else {
 

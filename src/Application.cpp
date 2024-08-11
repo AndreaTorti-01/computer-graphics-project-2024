@@ -70,7 +70,8 @@ void Application::localInit()
 	DSLGlobal.init(this, {{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(GlobalUniformBufferObject), 1}});
 	DSLToon.init(this, {{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(ToonUniformBufferObject), 1},
 						{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1},
-						{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(GlobalUniformBufferObject), 1}});
+						{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(ToonParUniformBufferObject), 1},
+						{3, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(GlobalUniformBufferObject), 1}});
 	DSLBW.init(this, {{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(ToonUniformBufferObject), 1},
 					  {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1},
 					  {2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(MikeParUniformBufferObject), 1},
@@ -110,8 +111,7 @@ void Application::localInit()
 	outText = {
 		{3, {"Press SPACE to start", " ", "", ""}, 0, 0},
 		{2, {"Evade the mikes", "And kill em all", "", ""}, 0, 0},
-		{1, {"GAME OVER", "press ESC to close", "", ""}, 0, 0}
-	};
+		{1, {"GAME OVER", "press ESC to close", "", ""}, 0, 0}};
 	txt.init(this, &outText);
 
 	// Initialize matrices
@@ -287,8 +287,9 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 		mike.update(deltaT, car.getPosition());
 
 	car.check_collisions(mikes);
-	if(car.getHealth()<=0) {
-		RebuildPipeline();	
+	if (car.getHealth() <= 0)
+	{
+		RebuildPipeline();
 		currScene = 2;
 	}
 
@@ -325,22 +326,26 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 	uboGlobal.lightColor[0].v = glm::vec4(0.6f);
 	uboGlobal.type[0].t = 0.0f;
 
-	for (int i = 0; i < NLIGHTS-1; i++)
+	for (int i = 0; i < NLIGHTS - 1; i++)
 	{
-		uboGlobal.lightDir[i+1].v = glm::vec3(0.0f, 0.0f, 0.0f);
+		uboGlobal.lightDir[i + 1].v = glm::vec3(0.0f, 0.0f, 0.0f);
 
-		uboGlobal.lightPos[i+1].v = mikes[i].getPosition() + glm::vec3(0.0f, 1.0f, 0.0f);
-		uboGlobal.lightColor[i+1].v = glm::vec4(0.8f);
-		uboGlobal.type[i+1].t = 1.0f;
+		uboGlobal.lightPos[i + 1].v = mikes[i].getPosition() + glm::vec3(0.0f, 1.0f, 0.0f);
+		uboGlobal.lightColor[i + 1].v = glm::vec4(0.8f);
+		uboGlobal.type[i + 1].t = 1.0f;
 	}
 	DSGlobal.map(currentImage, &uboGlobal, 0);
 
 	// Update Car uniforms
 	ToonUniformBufferObject uboCar{};
+	ToonParUniformBufferObject uboToonParC{};
+	uboToonParC.edgeDetectionOn = 1.0f;
+	uboToonParC.textureMultiplier = 1.0f;
 	uboCar.mMat = car.getPosition4();
 	uboCar.mvpMat = ViewPrj * uboCar.mMat;
 	uboCar.nMat = glm::inverse(uboCar.mMat);
 	DSCar.map(currentImage, &uboCar, 0);
+	DSCar.map(currentImage, &uboToonParC, 2);
 
 	// Update Mike uniforms
 
@@ -361,19 +366,27 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 	for (size_t i = 0; i < car.getBullets().size(); ++i)
 	{
 		ToonUniformBufferObject uboBullet{};
+		ToonParUniformBufferObject uboToonPar{};
+		uboToonPar.edgeDetectionOn = 1.0f;
+		uboToonPar.textureMultiplier = 1.0f;
 		uboBullet.mMat = glm::translate(glm::mat4(1.0f), car.getBullets()[i].getPosition());
 		uboBullet.mvpMat = ViewPrj * uboBullet.mMat;
 		uboBullet.nMat = glm::inverse(glm::transpose(uboBullet.mMat));
 		DSBullets[i].map(currentImage, &uboBullet, 0);
+		DSBullets[i].map(currentImage, &uboToonPar, 2);
 	}
 
 	// Update Floor uniforms
 	ToonUniformBufferObject uboFloor{};
+	ToonParUniformBufferObject uboToonParF{};
+	uboToonParF.edgeDetectionOn = 0.0f;
+	uboToonParF.textureMultiplier = FLOOR_DIAM/32.0;
 	uboFloor.mMat = glm::scale(glm::mat4(1.0f), glm::vec3(FLOOR_DIAM));
 	uboFloor.mvpMat = ViewPrj * uboFloor.mMat;
 	uboFloor.nMat = glm::transpose(glm::inverse(uboFloor.mMat));
 
 	DSFloor.map(currentImage, &uboFloor, 0);
+	DSFloor.map(currentImage, &uboToonParF, 2);
 
 	// Update Skybox uniforms
 	SkyBoxUniformBufferObject uboSky{};
