@@ -6,7 +6,7 @@
 
 constexpr auto MAX_MIKE_INSTANCES = 15;
 constexpr auto MAX_BULLET_INSTANCES = 3;
-constexpr auto FLOOR_DIAM = 128.0f; // multiple of 2
+constexpr auto FLOOR_DIAM = 64.0f; // multiple of 2
 constexpr auto NLIGHTS = 16;
 constexpr auto MAX_SPEED = 10.0f;
 

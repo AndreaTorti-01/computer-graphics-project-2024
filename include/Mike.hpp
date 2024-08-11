@@ -15,6 +15,7 @@ private:
 	std::mt19937 rng;
 	bool isDamaged;
 	float damageTimer;
+	float speed;
 
 	glm::vec3 generateRandomPosition(const glm::vec3& carPosition);
 
@@ -25,6 +26,7 @@ public:
 	void setDamageTimer(float timer);
 	void reset();
 	void spawn(glm::vec3 pos);
+	void multiplySpeed(float multiplier);
 	void update(float deltaT, const glm::vec3& carPosition);
 };
 

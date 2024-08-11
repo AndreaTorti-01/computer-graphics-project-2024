@@ -29,12 +29,13 @@ Mike::Mike()
 	damageTimer = 0.0;
 	position = glm::vec3(0.0f, -2.0f, 0.0f);
 	rotation = 0.0f;
+	speed = 2.0f;
 }
 
 void Mike::setDamaged(bool damaged) { isDamaged = damaged; }
 bool Mike::getDamaged() { return isDamaged; }
 void Mike::setDamageTimer(float timer) { damageTimer = timer; }
-
+void Mike::multiplySpeed(float multiplier) { if(speed * multiplier <= 9.0f ) speed *= multiplier; }
 void Mike::reset()
 {
 	isAboveFloor = false;
@@ -60,7 +61,7 @@ void Mike::update(float deltaT, const glm::vec3 &carPosition)
 		{
 			glm::vec3 dirToPlayer = glm::normalize(carPosition - position);
 			dirToPlayer.y = 0.0f;
-			position += dirToPlayer * 2.0f * deltaT;
+			position += dirToPlayer * speed * deltaT;
 			rotation = std::atan2(dirToPlayer.x, dirToPlayer.z);
 		}
 		if (isDamaged)

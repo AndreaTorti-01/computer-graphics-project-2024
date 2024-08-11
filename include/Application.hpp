@@ -47,6 +47,7 @@ protected:
 	float CamBeta = 0.0f;
 	float Ar;  // Aspect ratio
 	glm::mat4 ViewMatrix;
+	bool isIsometricView = false;
 
 	// Car position matrix
 	glm::mat4 CarPos;
@@ -57,6 +58,10 @@ protected:
 	TimeManager timeManager;
 	std::vector<DescriptorSet> DSMikes;
 	std::vector<DescriptorSet> DSBullets;
+
+	// Ubos
+
+	SkyBoxUniformBufferObject uboSky{};
 
 	// Descriptor pool sizes
 	int totalUniformBlocks = 0;

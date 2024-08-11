@@ -9,6 +9,7 @@ private:
 	float deltaTime;
 	float mikeSpawnTimer;
 	float mikeSpawnCooldown;
+	std::chrono::steady_clock::time_point lastAccelleration;
 
 public:
 	TimeManager();

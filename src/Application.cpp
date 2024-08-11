@@ -275,6 +275,11 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 		glfwSetWindowShouldClose(window, 1);
 		return;
 	}
+	if (glfwGetKey(window, GLFW_KEY_SPACE))
+	{
+		isIsometricView = !isIsometricView;
+		glfwWaitEventsTimeout(0.2);
+	}
 
 	timeManager.update();
 	timeManager.updateTimers(car, mikes);
@@ -295,6 +300,8 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 
 	// Camera position (static relative to the car)
 	glm::vec3 cameraOffset = glm::vec3(5.0f, 20.0f, 5.0f);
+	if (isIsometricView)
+		cameraOffset = glm::vec3(15.0f, 20.0f, 15.0f);
 	glm::vec3 cameraPosition = car.getPosition() + cameraOffset;
 
 	// Look at the car
@@ -303,9 +310,9 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 	// Projection matrix with FOV adjustment based on speed
 	float fov = glm::radians(30.0f + std::abs(car.getSpeed()) * 0.75f);
 	glm::mat4 M = glm::perspective(fov, Ar, 0.1f, 160.0f);
-	M[1][1] *= -1; // Flip Y-axis for Vulkan coordinate system
-	glm::mat4 Mv = ViewMatrix;
-	glm::mat4 ViewPrj = M * Mv;
+	M[1][1] *= -1; // Flip Y-axis for Vulkan coordinate
+
+	glm::mat4 ViewPrj = M * ViewMatrix;
 
 	// Shake camera slightly at high speed
 	if (std::abs(car.getSpeed()) > 0.9f * MAX_SPEED)
@@ -380,7 +387,7 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 	ToonUniformBufferObject uboFloor{};
 	ToonParUniformBufferObject uboToonParF{};
 	uboToonParF.edgeDetectionOn = 0.0f;
-	uboToonParF.textureMultiplier = FLOOR_DIAM/32.0;
+	uboToonParF.textureMultiplier = FLOOR_DIAM / 32.0;
 	uboFloor.mMat = glm::scale(glm::mat4(1.0f), glm::vec3(FLOOR_DIAM));
 	uboFloor.mvpMat = ViewPrj * uboFloor.mMat;
 	uboFloor.nMat = glm::transpose(glm::inverse(uboFloor.mMat));
@@ -390,7 +397,7 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 
 	// Update Skybox uniforms
 	SkyBoxUniformBufferObject uboSky{};
-	uboSky.mvpMat = M * glm::mat4(glm::mat3(Mv)); // Remove translation from view matrix
+	uboSky.mvpMat = M * glm::mat4(glm::mat3(ViewMatrix)); // Remove translation from view matrix
 	DSSkyBox.map(currentImage, &uboSky, 0);
 }
 
