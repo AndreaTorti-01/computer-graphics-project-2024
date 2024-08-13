@@ -17,13 +17,13 @@
 class Application : public BaseProject {
 protected:
 	// Descriptor Layouts
-	DescriptorSetLayout DSLGlobal, DSLSkyBox, DSLToon, DSLBW;
+	DescriptorSetLayout DSLGlobal, DSLSkyBox, DSLToon, DSLMike;
 
 	// Vertex formats
 	VertexDescriptor VDGeneric, VDSkyBox;
 
 	// Pipelines
-	Pipeline PToon, PBW, PSkyBox;
+	Pipeline PToon, PMike, PSkyBox;
 
 	// Text maker
 	TextMaker txt;
@@ -33,7 +33,7 @@ protected:
 	Texture TGeneric, TMike, TSkyBox, TFloor, TCar, TBullet;
 
 	// Descriptor Sets
-	DescriptorSet DSGlobal, DSCar, DSSkyBox, DSFloor;
+	DescriptorSet DSGlobal, DSCar, DSSkyBox, DSFloor, DSMikes;
 
 	// Application parameters
 	int currScene = 0;
@@ -56,7 +56,6 @@ protected:
 	std::array<Mike, MAX_MIKE_INSTANCES> mikes;
 	Car car;
 	TimeManager timeManager;
-	std::vector<DescriptorSet> DSMikes;
 	std::vector<DescriptorSet> DSBullets;
 
 	// Ubos

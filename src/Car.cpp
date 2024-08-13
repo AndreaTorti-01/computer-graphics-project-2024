@@ -116,7 +116,7 @@ void Car::update(float deltaT, glm::vec3 &controls)
     position4 = glm::rotate(position4, -rotation, glm::vec3(0.0f, 1.0f, 0.0f));
     position4 = glm::rotate(position4, -carTilt, glm::vec3(0.0f, 0.0f, 1.0f));
     // rotate model by 90 degrees clockwise and scale it 3x
-    position4 = glm::scale(position4, glm::vec3(3.0f, 3.0f, 3.0f));
+    position4 = glm::scale(position4, glm::vec3(0.3));
     position4 = glm::rotate(position4, glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f));
 
     // Update bullets

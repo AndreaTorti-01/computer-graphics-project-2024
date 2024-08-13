@@ -18,6 +18,13 @@ struct ToonUniformBufferObject
 	alignas(16) glm::mat4 nMat;	  // Normal matrix
 };
 
+struct MikeUniformBufferObject
+{
+		alignas(16) glm::mat4 mvpMat[MAX_MIKE_INSTANCES];
+		alignas(16) glm::mat4 mMat[MAX_MIKE_INSTANCES];
+		alignas(16) glm::mat4 nMat[MAX_MIKE_INSTANCES];
+};
+
 // Parameters for improved visuals of Mikes
 struct MikeParUniformBufferObject
 {

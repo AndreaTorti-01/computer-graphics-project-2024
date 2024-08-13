@@ -15,12 +15,13 @@ layout(location = 0) out vec4 outColor;
 // Set 0 The texture of Set 1 (binding 1), and the Material parameters (Set 1,
 // binding 2) are used. Note that each definition must match the one used in the
 // CPP code
+const int NLIGHTS = 16;
 layout(set = 0, binding = 0) uniform GlobalUniformBufferObject {
-  vec3 lightDir[16];
-  vec3 lightPos[16];
-  vec4 lightColor[16];
+  vec3 lightDir[NLIGHTS];
+  vec3 lightPos[NLIGHTS];
+  vec4 lightColor[NLIGHTS];
   vec3 eyePos;
-  float type[16];
+  float type[NLIGHTS];
 }
 gubo;
 
@@ -94,7 +95,7 @@ void main() {
     outColor = vec4(vec3(0.0), 1.0);
   else {
 
-    for (int i = 0; i < 16; i++) {
+    for (int i = 0; i < NLIGHTS; i++) {
       if (i != 0)
         col += BRDF(EyeDir, Norm, point_light_dir(fragPos, i), Albedo) *
                point_light_color(fragPos, i);

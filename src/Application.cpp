@@ -72,7 +72,7 @@ void Application::localInit()
 						{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1},
 						{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(ToonParUniformBufferObject), 1},
 						{3, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(GlobalUniformBufferObject), 1}});
-	DSLBW.init(this, {{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(ToonUniformBufferObject), 1},
+	DSLMike.init(this, {{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(MikeUniformBufferObject), 1},
 					  {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1},
 					  {2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(MikeParUniformBufferObject), 1},
 					  {3, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(GlobalUniformBufferObject), 1}});
@@ -85,12 +85,12 @@ void Application::localInit()
 
 	// Pipelines [Shader couples]
 	PToon.init(this, &VDGeneric, "shaders/Vert.spv", "shaders/ToonFrag.spv", {&DSLGlobal, &DSLToon});
-	PBW.init(this, &VDGeneric, "shaders/Vert.spv", "shaders/BWFrag.spv", {&DSLGlobal, &DSLBW});
+	PMike.init(this, &VDGeneric, "shaders/MikeVert.spv", "shaders/MikeFrag.spv", {&DSLGlobal, &DSLMike});
 	PSkyBox.init(this, &VDSkyBox, "shaders/SkyBoxVert.spv", "shaders/SkyBoxFrag.spv", {&DSLSkyBox});
 	PSkyBox.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, false);
 
 	// Create Models
-	MCar.init(this, &VDGeneric, "models/Car.gltf", GLTF);
+	MCar.init(this, &VDGeneric, "models/Car.obj", OBJ);
 	MMike.init(this, &VDGeneric, "models/Mike.obj", OBJ);
 	MSkyBox.init(this, &VDSkyBox, "models/SkyBox.obj", OBJ);
 	MFloor.init(this, &VDGeneric, "models/newFloor.obj", OBJ);
@@ -122,17 +122,13 @@ void Application::localInit()
 void Application::pipelinesAndDescriptorSetsInit()
 {
 	// Create pipelines
-	PBW.create();
+	PMike.create();
 	PToon.create();
 	PSkyBox.create();
 
 	// Initialize descriptor sets
-	DSCar.init(this, &DSLToon, {&TCar});
-	DSMikes.resize(MAX_MIKE_INSTANCES);
-	for (int i = 0; i < MAX_MIKE_INSTANCES; ++i)
-	{
-		DSMikes[i].init(this, &DSLBW, {&TMike});
-	}
+	DSCar.init(this, &DSLToon, {&TGeneric});
+	DSMikes.init(this, &DSLMike, {&TMike});
 	DSBullets.resize(MAX_BULLET_INSTANCES);
 	for (int i = 0; i < MAX_BULLET_INSTANCES; ++i)
 	{
@@ -151,13 +147,10 @@ void Application::pipelinesAndDescriptorSetsCleanup()
 {
 	PToon.cleanup();
 	PSkyBox.cleanup();
-	PBW.cleanup();
+	PMike.cleanup();
 
 	DSCar.cleanup();
-	for (auto &ds : DSMikes)
-	{
-		ds.cleanup();
-	}
+	DSMikes.cleanup();
 	for (auto &ds : DSBullets)
 	{
 		ds.cleanup();
@@ -186,12 +179,12 @@ void Application::localCleanup()
 	MBullet.cleanup();
 
 	DSLToon.cleanup();
-	DSLBW.cleanup();
+	DSLMike.cleanup();
 	DSLSkyBox.cleanup();
 	DSLGlobal.cleanup();
 
 	PToon.destroy();
-	PBW.destroy();
+	PMike.destroy();
 	PSkyBox.destroy();
 
 	txt.localCleanup();
@@ -215,14 +208,11 @@ void Application::populateCommandBuffer(VkCommandBuffer commandBuffer, int curre
 	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MCar.indices.size()), 1, 0, 0, 0);
 
 	// Render Mike instances
-	PBW.bind(commandBuffer);
+	PMike.bind(commandBuffer);
 	MMike.bind(commandBuffer);
-	DSGlobal.bind(commandBuffer, PBW, 0, currentImage);
-	for (size_t i = 0; i < MAX_MIKE_INSTANCES; ++i)
-	{
-		DSMikes[i].bind(commandBuffer, PBW, 1, currentImage);
-		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MMike.indices.size()), 1, 0, 0, 0);
-	}
+	DSGlobal.bind(commandBuffer, PMike, 0, currentImage);
+	DSMikes.bind(commandBuffer, PMike, 1, currentImage);
+	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MMike.indices.size()), MAX_MIKE_INSTANCES, 0, 0, 0);
 
 	// Render Bullet instances
 	PToon.bind(commandBuffer);
@@ -355,19 +345,19 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 	DSCar.map(currentImage, &uboToonParC, 2);
 
 	// Update Mike uniforms
-
+	MikeUniformBufferObject uboMike{};
+	MikeParUniformBufferObject uboMikePar{};
 	for (size_t i = 0; i < mikes.size(); ++i)
 	{
-		ToonUniformBufferObject uboMike{};
-		MikeParUniformBufferObject uboMikePar{};
 		glm::mat4 rotationMat = glm::rotate(glm::mat4(1.0f), mikes[i].getRotation(), glm::vec3(0.0f, 1.0f, 0.0f));
-		uboMike.mMat = glm::translate(glm::mat4(1.0f), mikes[i].getPosition()) * rotationMat;
-		uboMike.mvpMat = ViewPrj * uboMike.mMat;
-		uboMike.nMat = glm::inverse(glm::transpose(uboMike.mMat));
+		uboMike.mMat[i] = glm::translate(glm::mat4(1.0f), mikes[i].getPosition()) * rotationMat;
+		uboMike.mvpMat[i] = ViewPrj * uboMike.mMat[i];
+		uboMike.nMat[i] = glm::inverse(glm::transpose(uboMike.mMat[i]));
 		uboMikePar.showDamage = mikes[i].getDamaged();
-		DSMikes[i].map(currentImage, &uboMike, 0);
-		DSMikes[i].map(currentImage, &uboMikePar, 2);
 	}
+
+	DSMikes.map(currentImage, &uboMike, 0);
+	DSMikes.map(currentImage, &uboMikePar, 2);
 
 	// Update Bullet uniforms
 	for (size_t i = 0; i < car.getBullets().size(); ++i)
