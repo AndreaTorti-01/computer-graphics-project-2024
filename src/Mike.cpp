@@ -9,14 +9,16 @@ glm::vec3 Mike::generateRandomPosition(const glm::vec3 &carPosition)
 
 	float radius, angle;
 	glm::vec3 offset;
+	glm::vec3 result;
 	do
 	{
 		radius = distRadius(rng);
 		angle = distAngle(rng);
 		offset = glm::vec3(radius * cos(angle), 0.0f, radius * sin(angle));
-	} while (glm::length(carPosition + offset) > floorDiamAdj);
+		result = carPosition + offset;
+	} while (-floorDiamAdj > result.x || result.x > floorDiamAdj || -floorDiamAdj > result.z || result.z > floorDiamAdj);
 
-	return carPosition + offset;
+	return result;
 }
 
 Mike::Mike()

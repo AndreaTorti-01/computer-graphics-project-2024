@@ -91,14 +91,14 @@ void Application::localInit()
 
 	// Create Models
 	MCar.init(this, &VDGeneric, "models/Car.obj", OBJ);
-	MMike.init(this, &VDGeneric, "models/Mike.obj", OBJ);
+	MMike.init(this, &VDGeneric, "models/Mike.mgcg", MGCG);
 	MSkyBox.init(this, &VDSkyBox, "models/SkyBox.obj", OBJ);
 	MFloor.init(this, &VDGeneric, "models/newFloor.obj", OBJ);
-	MBullet.init(this, &VDGeneric, "models/Car.mgcg", MGCG);
+	MBullet.init(this, &VDGeneric, "models/Bullet.obj", OBJ);
 
 	// Initialize Textures
 	TGeneric.init(this, "textures/Textures.png");
-	TMike.init(this, "textures/T_Zebra.png");
+	TMike.init(this, "textures/T_Mike.png");
 	TSkyBox.init(this, "textures/T_SkyBox.jpg");
 	TFloor.init(this, "textures/TCom_Pavement_TerracottaAntique_2K_albedo.jpg");
 	TCar.init(this, "textures/T_Car.jpg");
@@ -128,7 +128,7 @@ void Application::pipelinesAndDescriptorSetsInit()
 
 	// Initialize descriptor sets
 	DSCar.init(this, &DSLToon, {&TGeneric});
-	DSMikes.init(this, &DSLMike, {&TMike});
+	DSMikes.init(this, &DSLMike, {&TGeneric});
 	DSBullets.resize(MAX_BULLET_INSTANCES);
 	for (int i = 0; i < MAX_BULLET_INSTANCES; ++i)
 	{
@@ -351,6 +351,7 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 	{
 		glm::mat4 rotationMat = glm::rotate(glm::mat4(1.0f), mikes[i].getRotation(), glm::vec3(0.0f, 1.0f, 0.0f));
 		uboMike.mMat[i] = glm::translate(glm::mat4(1.0f), mikes[i].getPosition()) * rotationMat;
+		uboMike.mMat[i] = glm::scale(uboMike.mMat[i], glm::vec3(0.5f));
 		uboMike.mvpMat[i] = ViewPrj * uboMike.mMat[i];
 		uboMike.nMat[i] = glm::inverse(glm::transpose(uboMike.mMat[i]));
 		uboMikePar.showDamage = mikes[i].getDamaged();
@@ -366,7 +367,8 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 		ToonParUniformBufferObject uboToonPar{};
 		uboToonPar.edgeDetectionOn = 1.0f;
 		uboToonPar.textureMultiplier = 1.0f;
-		uboBullet.mMat = glm::translate(glm::mat4(1.0f), car.getBullets()[i].getPosition());
+		uboBullet.mMat = glm::rotate(glm::mat4(1.0f), car.getBullets()[i].getRotation(), glm::vec3(0.0f, 1.0f, 0.0f));
+		uboBullet.mMat = glm::translate(uboBullet.mMat, car.getBullets()[i].getPosition());
 		uboBullet.mvpMat = ViewPrj * uboBullet.mMat;
 		uboBullet.nMat = glm::inverse(glm::transpose(uboBullet.mMat));
 		DSBullets[i].map(currentImage, &uboBullet, 0);

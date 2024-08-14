@@ -132,7 +132,7 @@ void Car::update(float deltaT, glm::vec3 &controls)
         {
             if (timeSinceLastShot >= shootCooldown)
             {
-                bullet.shoot(position, glm::vec3(position4[2]));
+                bullet.shoot(position, rotation);
                 timeSinceLastShot = 0.0f;
             }
         }

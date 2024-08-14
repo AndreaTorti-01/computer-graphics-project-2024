@@ -11,29 +11,30 @@ Bullet::Bullet()
 	maxFlyTime = 2.0f;
 }
 
-
 void Bullet::update(float deltaTime)
 {
 	// if it is above the floor then update its position
 	if (isAboveFloor)
 	{
-		position += direction * bulletSpeed * deltaTime;
+
+		position += glm::vec3(
+			std::cos(rotation) * bulletSpeed * deltaTime,
+			0.0f,
+			std::sin(rotation) * bulletSpeed * deltaTime);
 		flyTime += deltaTime;
 
 		// if it has been flying for too long then reset it
 		if (flyTime >= maxFlyTime)
 		{
-		    explode();
+			explode();
 		}
 	}
 }
 
-
-void Bullet::shoot(const glm::vec3& position, glm::vec3 direction)
+void Bullet::shoot(const glm::vec3 &position, float rotation)
 {
 	this->position = position;
-	direction.y = 0.0f;
-	this->direction = glm::normalize(direction);
+	this->rotation = rotation;
 	isAboveFloor = true;
 	flyTime = 0.0f;
 }
