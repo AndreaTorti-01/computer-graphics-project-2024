@@ -6,6 +6,7 @@
 layout(location = 0) in vec3 fragPos;
 layout(location = 1) in vec3 fragNorm;
 layout(location = 2) in vec2 fragUV;
+layout(location = 3) in float showDamage;
 
 // This defines the color computed by this shader. Generally is always location
 // 0.
@@ -23,10 +24,10 @@ layout(set = 0, binding = 0) uniform BlinnUniformBufferObject {
   int type[16];
 }
 gubo;
-
+const int NMIKE=15;
 layout(set = 1, binding = 1) uniform sampler2D texSampler;
 layout(set = 1, binding = 2) uniform MikeParUniformBufferObject {
-  float showDamage;
+  float showDamage[NMIKE];
 }
 pubo;
 
@@ -35,16 +36,8 @@ vec3 point_light_dir(vec3 pos, int i) {
 }
 
 vec3 point_light_color(vec3 pos, int i) {
-  return gubo.lightColor[i].rgb * pow(gubo.lightColor[i].a /
-         length(gubo.lightPos[i] - pos), 3.0f);
-}
-
-float edge_detection() {
-  float edge =
-      dot(abs(dFdx(fragPos)), vec3(1.0)) + dot(abs(dFdy(fragPos)), vec3(1.0));
-  if (edge > 0.08)
-    edge = 1.0;
-  return edge;
+  return gubo.lightColor[i].rgb *
+         pow(gubo.lightColor[i].a / length(gubo.lightPos[i] - pos), 3.0f);
 }
 
 vec3 BRDF(vec3 V, vec3 N, vec3 L, vec3 Md) {
@@ -74,6 +67,7 @@ void main() {
   vec3 EyeDir = normalize(gubo.eyePos - fragPos);
   vec3 Albedo = texture(texSampler, fragUV).rgb;
 
+
   const vec3 cxp = vec3(1.0, 0.5, 0.5) * 0.15;
   const vec3 cxn = vec3(0.9, 0.6, 0.4) * 0.15;
   const vec3 cyp = vec3(0.3, 1.0, 1.0) * 0.15;
@@ -88,19 +82,14 @@ void main() {
 
   vec3 col = vec3(0.0);
 
-  if (edge_detection() == 1.0)
-    outColor = vec4(vec3(0.0), 1.0);
-  else {
-
-    for (int i = 0; i < 16; i++) {
-      if (i != 0)
-        col += BRDF(EyeDir, Norm, point_light_dir(fragPos, i), Albedo) *
-               point_light_color(fragPos, i);
-      else
-        col += BRDF(EyeDir, Norm, gubo.lightDir[i], Albedo) *
-               gubo.lightColor[i].rgb;
-    }
-
-    outColor = vec4(col + Ambient + pubo.showDamage * vec3(0.8,0.0,0.0), 1.0f);
+  for (int i = 0; i < 16; i++) {
+    if (i != 0)
+      col += BRDF(EyeDir, Norm, point_light_dir(fragPos, i), Albedo) *
+             point_light_color(fragPos, i);
+    else
+      col +=
+          BRDF(EyeDir, Norm, gubo.lightDir[i], Albedo) * gubo.lightColor[i].rgb;
   }
+
+  outColor = vec4(col + Ambient + showDamage * vec3(0.8, 0.0, 0.0), 1.0f);
 }

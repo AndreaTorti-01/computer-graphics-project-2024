@@ -28,7 +28,10 @@ struct MikeUniformBufferObject
 // Parameters for improved visuals of Mikes
 struct MikeParUniformBufferObject
 {
-	alignas(4) float showDamage;
+	struct 
+	{
+		alignas(4) float p;
+	} showDamage[MAX_MIKE_INSTANCES]; // 0 global, 1 point
 };
 
 struct 	ToonParUniformBufferObject

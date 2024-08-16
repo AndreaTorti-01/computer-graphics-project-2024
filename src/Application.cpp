@@ -72,10 +72,12 @@ void Application::localInit()
 						{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1},
 						{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(ToonParUniformBufferObject), 1},
 						{3, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(GlobalUniformBufferObject), 1}});
+
 	DSLMike.init(this, {{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(MikeUniformBufferObject), 1},
 					  {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1},
-					  {2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(MikeParUniformBufferObject), 1},
+					  {2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, sizeof(MikeParUniformBufferObject), 1},
 					  {3, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(GlobalUniformBufferObject), 1}});
+
 	DSLSkyBox.init(this, {{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, sizeof(SkyBoxUniformBufferObject), 1},
 						  {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1}});
 
@@ -347,16 +349,16 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 	// Update Mike uniforms
 	MikeUniformBufferObject uboMike{};
 	MikeParUniformBufferObject uboMikePar{};
-	for (size_t i = 0; i < mikes.size(); ++i)
+	for (size_t i = 0; i < mikes.size(); i++)
 	{
 		glm::mat4 rotationMat = glm::rotate(glm::mat4(1.0f), mikes[i].getRotation(), glm::vec3(0.0f, 1.0f, 0.0f));
 		uboMike.mMat[i] = glm::translate(glm::mat4(1.0f), mikes[i].getPosition()) * rotationMat;
 		uboMike.mMat[i] = glm::scale(uboMike.mMat[i], glm::vec3(0.5f));
 		uboMike.mvpMat[i] = ViewPrj * uboMike.mMat[i];
 		uboMike.nMat[i] = glm::inverse(glm::transpose(uboMike.mMat[i]));
-		uboMikePar.showDamage = mikes[i].getDamaged();
+		if(mikes[i].getDamaged()) uboMikePar.showDamage[i].p = 1.0f;
+		else  uboMikePar.showDamage[i].p = 0.0f;
 	}
-
 	DSMikes.map(currentImage, &uboMike, 0);
 	DSMikes.map(currentImage, &uboMikePar, 2);
 
