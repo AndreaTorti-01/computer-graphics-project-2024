@@ -115,7 +115,7 @@ void Car::update(float deltaT, glm::vec3 &controls)
     position4 = glm::translate(glm::mat4(1.0f), position);
     position4 = glm::rotate(position4, -rotation, glm::vec3(0.0f, 1.0f, 0.0f));
     position4 = glm::rotate(position4, -carTilt, glm::vec3(0.0f, 0.0f, 1.0f));
-    // rotate model by 90 degrees clockwise and scale it 3x
+    // rotate model by 90 degrees clockwise and scale it down 3x
     position4 = glm::scale(position4, glm::vec3(0.3));
     position4 = glm::rotate(position4, glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f));
 
@@ -132,7 +132,7 @@ void Car::update(float deltaT, glm::vec3 &controls)
         {
             if (timeSinceLastShot >= shootCooldown)
             {
-                bullet.shoot(position, rotation);
+                bullet.shoot(position, rotation, glm::vec3(position4[2]));
                 timeSinceLastShot = 0.0f;
             }
         }
@@ -153,7 +153,7 @@ void Car::check_collisions(std::array<Mike, MAX_MIKE_INSTANCES> &mikes)
         {
             if (mike.getIsAboveFloor() && !mike.getDamaged() && bullet.getIsAboveFloor())
             {
-                if (glm::distance(mike.getPosition(), bullet.getPosition()) <= 0.5)
+                if (glm::distance(mike.getPosition(), bullet.getPosition()) <= 1.0)
                 {
                     mike.setDamaged(true);
                     mike.setDamageTimer(0.0f);

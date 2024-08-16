@@ -367,8 +367,8 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 		ToonParUniformBufferObject uboToonPar{};
 		uboToonPar.edgeDetectionOn = 1.0f;
 		uboToonPar.textureMultiplier = 1.0f;
-		uboBullet.mMat = glm::rotate(glm::mat4(1.0f), car.getBullets()[i].getRotation(), glm::vec3(0.0f, 1.0f, 0.0f));
-		uboBullet.mMat = glm::translate(uboBullet.mMat, car.getBullets()[i].getPosition());
+		glm::mat4 rotationMat = glm::rotate(glm::mat4(1.0f), car.getBullets()[i].getRotation(), glm::vec3(0.0f, 1.0f, 0.0f));
+		uboBullet.mMat = glm::translate(glm::mat4(1.0f), car.getBullets()[i].getPosition()) * rotationMat;
 		uboBullet.mvpMat = ViewPrj * uboBullet.mMat;
 		uboBullet.nMat = glm::inverse(glm::transpose(uboBullet.mMat));
 		DSBullets[i].map(currentImage, &uboBullet, 0);
