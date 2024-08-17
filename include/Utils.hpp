@@ -3,8 +3,8 @@
 #include <vector>
 #include <TextMaker.hpp>
 #include <glm_with_defines.hpp>
-
-constexpr auto MAX_MIKE_INSTANCES = 15;
+	
+constexpr auto MAX_MIKE_INSTANCES = 3;
 constexpr auto MAX_BULLET_INSTANCES = 3;
 constexpr auto MAX_UPGRADE_INSTANCES = 3;
 constexpr auto FLOOR_DIAM = 64.0f; // multiple of 2

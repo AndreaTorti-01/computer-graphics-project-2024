@@ -41,7 +41,6 @@
   <ItemGroup>
     <None Include=".gitignore" />
     <None Include="computer-graphics-project-2024.vcxproj" />
-    <None Include="Makefile" />
     <None Include="PropertySheet.props" />
     <None Include="README.md" />
     <None Include="windows_compile_shaders.bat" />

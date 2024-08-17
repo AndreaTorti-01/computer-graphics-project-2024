@@ -3,11 +3,11 @@
 // Window parameters setup
 void Application::setWindowParameters()
 {
-	windowWidth = 800;
-	windowHeight = 600;
+	windowWidth = 1280;
+	windowHeight = 720;
 	windowTitle = "CG Project";
 	windowResizable = GLFW_TRUE;
-	initialBackgroundColor = {0.1f, 0.1f, 0.1f, 1.0f};
+	initialBackgroundColor = { 0.1f, 0.1f, 0.1f, 1.0f };
 	Ar = static_cast<float>(windowWidth) / static_cast<float>(windowHeight);
 }
 
@@ -41,6 +41,11 @@ void Application::calculateDescriptorPoolSizes()
 	totalSets += MAX_BULLET_INSTANCES;
 
 	// Floor
+	totalUniformBlocks += 1;
+	totalTextures += 1;
+	totalSets += 1;
+
+	// Grass
 	totalUniformBlocks += 1;
 	totalTextures += 1;
 	totalSets += 1;
@@ -83,8 +88,8 @@ void Application::localInit()
 						  {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1}});
 
 	// Initialize Vertex Descriptors
-	VDGeneric.init(this, {{0, sizeof(GenericVertex), VK_VERTEX_INPUT_RATE_VERTEX}}, {{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(GenericVertex, pos), sizeof(glm::vec3), POSITION}, {0, 1, VK_FORMAT_R32G32B32_SFLOAT, offsetof(GenericVertex, norm), sizeof(glm::vec3), NORMAL}, {0, 2, VK_FORMAT_R32G32_SFLOAT, offsetof(GenericVertex, UV), sizeof(glm::vec2), UV}});
-	VDSkyBox.init(this, {{0, sizeof(SkyBoxVertex), VK_VERTEX_INPUT_RATE_VERTEX}}, {{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(SkyBoxVertex, pos), sizeof(glm::vec3), POSITION}});
+	VDGeneric.init(this, { {0, sizeof(GenericVertex), VK_VERTEX_INPUT_RATE_VERTEX} }, { {0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(GenericVertex, pos), sizeof(glm::vec3), POSITION}, {0, 1, VK_FORMAT_R32G32B32_SFLOAT, offsetof(GenericVertex, norm), sizeof(glm::vec3), NORMAL}, {0, 2, VK_FORMAT_R32G32_SFLOAT, offsetof(GenericVertex, UV), sizeof(glm::vec2), UV} });
+	VDSkyBox.init(this, { {0, sizeof(SkyBoxVertex), VK_VERTEX_INPUT_RATE_VERTEX} }, { {0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(SkyBoxVertex, pos), sizeof(glm::vec3), POSITION} });
 
 	// Pipelines [Shader couples]
 	PToon.init(this, &VDGeneric, "shaders/Vert.spv", "shaders/ToonFrag.spv", {&DSLGlobal, &DSLToon});
@@ -97,7 +102,8 @@ void Application::localInit()
 	MCar.init(this, &VDGeneric, "models/Car.obj", OBJ);
 	MMike.init(this, &VDGeneric, "models/Mike.mgcg", MGCG);
 	MSkyBox.init(this, &VDSkyBox, "models/SkyBox.obj", OBJ);
-	MFloor.init(this, &VDGeneric, "models/newFloor.obj", OBJ);
+	MFloor.init(this, &VDGeneric, "models/squarefloor128.obj", OBJ);
+	MGrass.init(this, &VDGeneric, "models/outergrass16.obj", OBJ);
 	MBullet.init(this, &VDGeneric, "models/Bullet.obj", OBJ);
 	MUpgrade.init(this, &VDGeneric, "models/Upgrade.obj", OBJ);
 	MTitle1.init(this, &VDGeneric, "models/Title1.obj", OBJ);
@@ -111,6 +117,7 @@ void Application::localInit()
 	TBullet.init(this, "textures/Textures.png");
 	TUpgrade.init(this, "textures/Textures.png");
 	TTitle1.init(this, "textures/Textures.png");
+	TGrass.init(this, "textures/grass.jpg");
 
 	calculateDescriptorPoolSizes();
 
@@ -141,15 +148,16 @@ void Application::pipelinesAndDescriptorSetsInit()
 	DSBullets.resize(MAX_BULLET_INSTANCES);
 	for (int i = 0; i < MAX_BULLET_INSTANCES; ++i)
 	{
-		DSBullets[i].init(this, &DSLToon, {&TBullet});
+		DSBullets[i].init(this, &DSLToon, { &TBullet });
 	}
 	DSUpgrades.resize(MAX_UPGRADE_INSTANCES);
 	for (int i = 0; i < MAX_UPGRADE_INSTANCES; ++i)
 	{
 		DSUpgrades[i].init(this, &DSLToon, {&TUpgrade});
 	}
-	DSFloor.init(this, &DSLToon, {&TFloor});
-	DSSkyBox.init(this, &DSLSkyBox, {&TSkyBox});
+	DSFloor.init(this, &DSLToon, { &TFloor });
+	DSGrass.init(this, &DSLToon, { &TGrass });
+	DSSkyBox.init(this, &DSLSkyBox, { &TSkyBox });
 	DSTitle1.init(this, &DSLTitles, {&TTitle1});
 	DSGlobal.init(this, &DSLGlobal, {});
 
@@ -176,6 +184,7 @@ void Application::pipelinesAndDescriptorSetsCleanup()
 		ds.cleanup();
 	}
 	DSFloor.cleanup();
+	DSGrass.cleanup();
 	DSSkyBox.cleanup();
 	DSTitle1.cleanup();
 	DSGlobal.cleanup();
@@ -194,6 +203,7 @@ void Application::localCleanup()
 	TBullet.cleanup();
 	TUpgrade.cleanup();
 	TTitle1.cleanup();
+	TGrass.cleanup();
 
 	MCar.cleanup();
 	MMike.cleanup();
@@ -202,6 +212,7 @@ void Application::localCleanup()
 	MBullet.cleanup();
 	MUpgrade.cleanup();
 	MTitle1.cleanup();
+	MGrass.cleanup();
 
 	DSLToon.cleanup();
 	DSLMike.cleanup();
@@ -226,6 +237,13 @@ void Application::populateCommandBuffer(VkCommandBuffer commandBuffer, int curre
 	DSGlobal.bind(commandBuffer, PToon, 0, currentImage);
 	DSFloor.bind(commandBuffer, PToon, 1, currentImage);
 	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MFloor.indices.size()), 1, 0, 0, 0);
+
+	// Render Grass
+	PToon.bind(commandBuffer);
+	MGrass.bind(commandBuffer);
+	DSGlobal.bind(commandBuffer, PToon, 0, currentImage);
+	DSGrass.bind(commandBuffer, PToon, 1, currentImage);
+	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MGrass.indices.size()), 1, 0, 0, 0);
 
 	// Render Car
 	PToon.bind(commandBuffer);
@@ -366,9 +384,9 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 	{
 		float shakeAmount = 0.004f * (std::abs(car.getSpeed()) - 0.9f * MAX_SPEED) / (0.1f * MAX_SPEED);
 		ViewPrj = glm::translate(ViewPrj, glm::vec3(
-											  0.0f,
-											  shakeAmount * (std::sin(deltaT * 50.0f) + std::cos(deltaT * 47.0f)),
-											  shakeAmount * (std::cos(deltaT * 53.0f) + std::sin(deltaT * 59.0f))));
+			0.0f,
+			shakeAmount * (std::sin(deltaT * 50.0f) + std::cos(deltaT * 47.0f)),
+			shakeAmount * (std::cos(deltaT * 53.0f) + std::sin(deltaT * 59.0f))));
 	}
 
 	// Update global uniforms
@@ -457,13 +475,20 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 	DSFloor.map(currentImage, &uboFloor, 0);
 	DSFloor.map(currentImage, &uboToonParF, 2);
 
+	// Update Grass uniforms
+	ToonUniformBufferObject uboGrass{};
+	uboGrass.mMat = glm::mat4(1.0f);
+	uboGrass.mvpMat = ViewPrj * uboGrass.mMat;
+	uboGrass.nMat = glm::transpose(glm::inverse(uboGrass.mMat));
+	DSGrass.map(currentImage, &uboGrass, 0);
+
 	// Update Skybox uniforms
 	SkyBoxUniformBufferObject uboSky{};
 	uboSky.mvpMat = M * glm::mat4(glm::mat3(ViewMatrix)); // Remove translation from view matrix
 	DSSkyBox.map(currentImage, &uboSky, 0);
 }
 
-glm::vec3 generateRandomPosition(Car car, const float minRadius, const float maxRadius, std::mt19937 &rng, const float floorDiam)
+glm::vec3 generateRandomPosition(Car car, const float minRadius, const float maxRadius, std::mt19937& rng, const float floorDiam)
 {
 	std::uniform_real_distribution<float> distRadius(minRadius, maxRadius);
 	std::uniform_real_distribution<float> distAngle(0.0f, 2.0f * glm::pi<float>());

@@ -8,6 +8,7 @@
       <AdditionalIncludeDirectories>.\include;.\libraries;C:\vs_graphics_libraries\glfw.bin.WIN64\include;C:\VulkanSDK\Include;C:\vs_graphics_libraries\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <BufferSecurityCheck>false</BufferSecurityCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>C:\vs_graphics_libraries\glfw.bin.WIN64\lib-vc2022;C:\VulkanSDK\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
