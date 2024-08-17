@@ -3,6 +3,7 @@
 #include "Entity.hpp"
 #include "Bullet.hpp"
 #include "Mike.hpp"
+#include "Upgrade.hpp"
 #include <array>
 
 class Car :
@@ -41,6 +42,6 @@ public:
 	float getSinceLastShot();
 	std::array<Bullet, MAX_BULLET_INSTANCES> getBullets();
 	void update(float deltaT, glm::vec3& controls);
-	void check_collisions(std::array<Mike, MAX_MIKE_INSTANCES>& mikes);
+	void check_collisions(std::array<Mike, MAX_MIKE_INSTANCES>& mikes, std::array<Upgrade, MAX_UPGRADE_INSTANCES> &upgrades);
 };
 

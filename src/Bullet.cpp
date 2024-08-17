@@ -9,7 +9,7 @@ Bullet::Bullet()
 
 	bulletSpeed = 14.0f;
 	flyTime = 0.0f;
-	maxFlyTime = 2.0f;
+	maxFlyTime = 1.0f;
 }
 
 glm::mat4 Bullet::getPosition4() { return position4; }
@@ -29,6 +29,11 @@ void Bullet::update(float deltaTime)
 		    explode();
 		}
 	}
+}
+
+void Bullet::increaseSpeed()
+{
+	bulletSpeed += 2.0f;
 }
 
 

@@ -6,9 +6,11 @@
 
 constexpr auto MAX_MIKE_INSTANCES = 15;
 constexpr auto MAX_BULLET_INSTANCES = 3;
+constexpr auto MAX_UPGRADE_INSTANCES = 3;
 constexpr auto FLOOR_DIAM = 64.0f; // multiple of 2
 constexpr auto NLIGHTS = 16;
 constexpr auto MAX_SPEED = 10.0f;
+
 
 // Uniform buffer object for toon shading
 struct ToonUniformBufferObject
@@ -23,15 +25,7 @@ struct MikeUniformBufferObject
 		alignas(16) glm::mat4 mvpMat[MAX_MIKE_INSTANCES];
 		alignas(16) glm::mat4 mMat[MAX_MIKE_INSTANCES];
 		alignas(16) glm::mat4 nMat[MAX_MIKE_INSTANCES];
-};
-
-// Parameters for improved visuals of Mikes
-struct MikeParUniformBufferObject
-{
-	struct 
-	{
-		alignas(4) float p;
-	} showDamage[MAX_MIKE_INSTANCES]; // 0 global, 1 point
+		alignas(4)  float     showDamage[MAX_MIKE_INSTANCES];
 };
 
 struct 	ToonParUniformBufferObject
@@ -93,4 +87,10 @@ struct MikeInstance
 	float damageTimer;
 	bool isAboveFloor; // Flag to indicate if Mike is above or below the floor
 	bool isDamaged;
+};
+
+struct UpgradeInstance
+{
+	glm::mat4 position4; // Position of Upgrade instance
+	bool isAboveFloor; // Flag to indicate if Upgrade is above or below the floor
 };

@@ -9,7 +9,7 @@ Car::Car()
     maxSteeringAngle = 0.7f;
     steeringSpeed = 3.2f;
     wheelbase = 2.0f;
-    shootCooldown = 0.2f;
+    shootCooldown = 2.0f;
     timeSinceLastShot = 0.0f;
     carSpeed = 0.0f;
     currentSteeringAngle = 0.0f;
@@ -139,8 +139,26 @@ void Car::update(float deltaT, glm::vec3 &controls)
     }
 }
 
-void Car::check_collisions(std::array<Mike, MAX_MIKE_INSTANCES> &mikes)
+void Car::check_collisions(std::array<Mike, MAX_MIKE_INSTANCES> &mikes, std::array<Upgrade, MAX_UPGRADE_INSTANCES> &upgrades)
 {
+    for (auto &up : upgrades)
+    {
+        if(glm::distance(up.getPosition(), position) <= 0.5)
+        {
+            switch(up.getUpgrade()){
+                case 0:
+                    for(auto &bullet : bullets){
+                        shootCooldown = glm::clamp(shootCooldown - 0.5, 0.2, 2.0);
+                    }
+                    break;
+                case 1:
+                    for(auto &bullet : bullets){
+                        bullet.increaseSpeed();
+                    }
+                    break;
+            }
+        }
+    }
     for (auto &mike : mikes)
     {
         if (glm::distance(mike.getPosition(), position) <= 0.5)

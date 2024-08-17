@@ -22,23 +22,19 @@ layout(set = 1, binding = 0) uniform UniformBufferObject {
 	mat4 mvpMat[NMIKE];
 	mat4 mMat[NMIKE];
 	mat4 nMat[NMIKE];
+	float showDamage[NMIKE];
 } ubo;
-
-layout(set = 1, binding = 2) uniform MikeParUniformBufferObject {
-  float showDamage[NMIKE];
-}
-pubo;
 
 // Here the shader simply computes clipping coordinates, and passes to the Fragment Shader
 // the position of the point in World Space, the transformed direction of the normal vector,
 // and the untouched (but interpolated) UV coordinates
 void main() {
-	int i = gl_InstanceIndex ;
+	int i = gl_InstanceIndex;
 	// Clipping coordinates must be returned in global variable gl_Posision
 	gl_Position = ubo.mvpMat[i] * vec4(inPosition, 1.0);
 	// Here the value of the out variables passed to the Fragment shader are computed
 	fragPos = (ubo.mMat[i] * vec4(inPosition, 1.0)).xyz;
 	fragNorm = (ubo.nMat[i] * vec4(inNorm, 0.0)).xyz;
 	fragUV = inUV;
-	showDamage = pubo.showDamage[i];
+	showDamage = ubo.showDamage[i];
 }

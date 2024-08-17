@@ -24,12 +24,9 @@ layout(set = 0, binding = 0) uniform BlinnUniformBufferObject {
   int type[16];
 }
 gubo;
-const int NMIKE=15;
+
 layout(set = 1, binding = 1) uniform sampler2D texSampler;
-layout(set = 1, binding = 2) uniform MikeParUniformBufferObject {
-  float showDamage[NMIKE];
-}
-pubo;
+
 
 vec3 point_light_dir(vec3 pos, int i) {
   return normalize(gubo.lightPos[i] - pos);
@@ -60,7 +57,7 @@ vec3 BRDF(vec3 V, vec3 N, vec3 L, vec3 Md) {
   return (Diffuse);
 }
 
-// The main shader, implementing a simple Global + Lambert + constant Ambient
+// The main shader, implementing a simple Globconst int NMIKE=15;al + Lambert + constant Ambient
 // BRDF model The scene is lit by a single Spot Light
 void main() {
   vec3 Norm = normalize(fragNorm);

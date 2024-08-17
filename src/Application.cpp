@@ -74,9 +74,8 @@ void Application::localInit()
 						{3, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(GlobalUniformBufferObject), 1}});
 
 	DSLMike.init(this, {{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(MikeUniformBufferObject), 1},
-					  {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1},
-					  {2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, sizeof(MikeParUniformBufferObject), 1},
-					  {3, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(GlobalUniformBufferObject), 1}});
+						{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1},
+						{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(GlobalUniformBufferObject), 1}});
 
 	DSLSkyBox.init(this, {{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, sizeof(SkyBoxUniformBufferObject), 1},
 						  {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1}});
@@ -97,6 +96,7 @@ void Application::localInit()
 	MSkyBox.init(this, &VDSkyBox, "models/SkyBox.obj", OBJ);
 	MFloor.init(this, &VDGeneric, "models/newFloor.obj", OBJ);
 	MBullet.init(this, &VDGeneric, "models/Bullet.obj", OBJ);
+	MUpgrade.init(this, &VDGeneric, "models/Upgrade.obj", OBJ);
 
 	// Initialize Textures
 	TGeneric.init(this, "textures/Textures.png");
@@ -105,6 +105,7 @@ void Application::localInit()
 	TFloor.init(this, "textures/TCom_Pavement_TerracottaAntique_2K_albedo.jpg");
 	TCar.init(this, "textures/T_Car.jpg");
 	TBullet.init(this, "textures/Textures.png");
+	TUpgrade.init(this, "textures/Textures.png");
 
 	calculateDescriptorPoolSizes();
 
@@ -136,6 +137,11 @@ void Application::pipelinesAndDescriptorSetsInit()
 	{
 		DSBullets[i].init(this, &DSLToon, {&TBullet});
 	}
+	DSUpgrades.resize(MAX_UPGRADE_INSTANCES);
+	for (int i = 0; i < MAX_UPGRADE_INSTANCES; ++i)
+	{
+		DSUpgrades[i].init(this, &DSLToon, {&TUpgrade});
+	}
 	DSFloor.init(this, &DSLToon, {&TFloor});
 	DSSkyBox.init(this, &DSLSkyBox, {&TSkyBox});
 	DSGlobal.init(this, &DSLGlobal, {});
@@ -157,6 +163,10 @@ void Application::pipelinesAndDescriptorSetsCleanup()
 	{
 		ds.cleanup();
 	}
+		for (auto &ds : DSUpgrades)
+	{
+		ds.cleanup();
+	}
 	DSFloor.cleanup();
 	DSSkyBox.cleanup();
 	DSGlobal.cleanup();
@@ -173,12 +183,14 @@ void Application::localCleanup()
 	TSkyBox.cleanup();
 	TCar.cleanup();
 	TBullet.cleanup();
+	TUpgrade.cleanup();
 
 	MCar.cleanup();
 	MMike.cleanup();
 	MSkyBox.cleanup();
 	MFloor.cleanup();
 	MBullet.cleanup();
+	MUpgrade.cleanup();
 
 	DSLToon.cleanup();
 	DSLMike.cleanup();
@@ -224,6 +236,16 @@ void Application::populateCommandBuffer(VkCommandBuffer commandBuffer, int curre
 	{
 		DSBullets[i].bind(commandBuffer, PToon, 1, currentImage);
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MBullet.indices.size()), 1, 0, 0, 0);
+	}
+
+	// Render Upgrades instances
+	PToon.bind(commandBuffer);
+	MUpgrade.bind(commandBuffer);
+	DSGlobal.bind(commandBuffer, PToon, 0, currentImage);
+	for (size_t i = 0; i < MAX_UPGRADE_INSTANCES; ++i)
+	{
+		DSUpgrades[i].bind(commandBuffer, PToon, 1, currentImage);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MUpgrade.indices.size()), 1, 0, 0, 0);
 	}
 
 	// Render SkyBox
@@ -274,16 +296,18 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 	}
 
 	timeManager.update();
-	timeManager.updateTimers(car, mikes);
+	timeManager.updateTimers(car, mikes, upgrades);
 	deltaT = timeManager.getDeltaTime();
 
 	getSixAxis(deltaT, m, r, fire);
 
 	car.update(deltaT, m);
+	for (auto &up : upgrades)
+		up.update(deltaT);
 	for (auto &mike : mikes)
 		mike.update(deltaT, car.getPosition());
 
-	car.check_collisions(mikes);
+	car.check_collisions(mikes, upgrades);
 	if (car.getHealth() <= 0)
 	{
 		RebuildPipeline();
@@ -348,7 +372,6 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 
 	// Update Mike uniforms
 	MikeUniformBufferObject uboMike{};
-	MikeParUniformBufferObject uboMikePar{};
 	for (size_t i = 0; i < mikes.size(); i++)
 	{
 		glm::mat4 rotationMat = glm::rotate(glm::mat4(1.0f), mikes[i].getRotation(), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -356,11 +379,11 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 		uboMike.mMat[i] = glm::scale(uboMike.mMat[i], glm::vec3(0.5f));
 		uboMike.mvpMat[i] = ViewPrj * uboMike.mMat[i];
 		uboMike.nMat[i] = glm::inverse(glm::transpose(uboMike.mMat[i]));
-		if(mikes[i].getDamaged()) uboMikePar.showDamage[i].p = 1.0f;
-		else  uboMikePar.showDamage[i].p = 0.0f;
+		uboMike.showDamage[i] = 0.0f;
+		if (mikes[i].getDamaged()) uboMike.showDamage[i] = 1.0f;
+         
 	}
 	DSMikes.map(currentImage, &uboMike, 0);
-	DSMikes.map(currentImage, &uboMikePar, 2);
 
 	// Update Bullet uniforms
 	for (size_t i = 0; i < car.getBullets().size(); ++i)
@@ -375,6 +398,20 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 		uboBullet.nMat = glm::inverse(glm::transpose(uboBullet.mMat));
 		DSBullets[i].map(currentImage, &uboBullet, 0);
 		DSBullets[i].map(currentImage, &uboToonPar, 2);
+	}
+
+	// Update Upgrade uniforms
+	for (size_t i = 0; i < upgrades.size(); ++i)
+	{
+		ToonUniformBufferObject uboUpgrade{};
+		ToonParUniformBufferObject uboToonParU{};
+		uboToonParU.edgeDetectionOn = 1.0f;
+		uboToonParU.textureMultiplier = 1.0f;
+		uboUpgrade.mMat = upgrades[i].getPosition4();
+		uboUpgrade.mvpMat = ViewPrj * uboUpgrade.mMat;
+		uboUpgrade.nMat = glm::inverse(glm::transpose(uboUpgrade.mMat));
+		DSUpgrades[i].map(currentImage, &uboUpgrade, 0);
+		DSUpgrades[i].map(currentImage, &uboToonParU, 2);
 	}
 
 	// Update Floor uniforms

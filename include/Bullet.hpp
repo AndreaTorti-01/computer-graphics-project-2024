@@ -19,4 +19,6 @@ public:
 	void shoot(const glm::vec3& position, float rotation, glm::vec3 direction);
 	glm::mat4 getPosition4();
 	void explode();
+	void reduceCooldown();
+	void increaseSpeed();
 };
