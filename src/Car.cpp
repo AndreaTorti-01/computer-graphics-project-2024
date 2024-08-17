@@ -108,7 +108,7 @@ void Car::update(float deltaT, glm::vec3& controls)
 	position.y = 0.0f;
 
 	// Tilt the car based on amount of acceleration
-	float carTilt = glm::radians(glm::clamp(controls.z * -5.0f, -5.0f, 5.0f));
+	float carTilt = glm::radians(glm::clamp(controls.z * -2.0f, -2.0f, 2.0f));
 
     // Update car matrix
     position4 = glm::translate(glm::mat4(1.0f), position);

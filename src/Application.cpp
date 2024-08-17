@@ -7,7 +7,7 @@ void Application::setWindowParameters()
 	windowHeight = 720;
 	windowTitle = "CG Project";
 	windowResizable = GLFW_TRUE;
-	initialBackgroundColor = { 0.1f, 0.1f, 0.1f, 1.0f };
+	initialBackgroundColor = {0.1f, 0.1f, 0.1f, 1.0f};
 	Ar = static_cast<float>(windowWidth) / static_cast<float>(windowHeight);
 }
 
@@ -88,8 +88,8 @@ void Application::localInit()
 						  {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1}});
 
 	// Initialize Vertex Descriptors
-	VDGeneric.init(this, { {0, sizeof(GenericVertex), VK_VERTEX_INPUT_RATE_VERTEX} }, { {0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(GenericVertex, pos), sizeof(glm::vec3), POSITION}, {0, 1, VK_FORMAT_R32G32B32_SFLOAT, offsetof(GenericVertex, norm), sizeof(glm::vec3), NORMAL}, {0, 2, VK_FORMAT_R32G32_SFLOAT, offsetof(GenericVertex, UV), sizeof(glm::vec2), UV} });
-	VDSkyBox.init(this, { {0, sizeof(SkyBoxVertex), VK_VERTEX_INPUT_RATE_VERTEX} }, { {0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(SkyBoxVertex, pos), sizeof(glm::vec3), POSITION} });
+	VDGeneric.init(this, {{0, sizeof(GenericVertex), VK_VERTEX_INPUT_RATE_VERTEX}}, {{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(GenericVertex, pos), sizeof(glm::vec3), POSITION}, {0, 1, VK_FORMAT_R32G32B32_SFLOAT, offsetof(GenericVertex, norm), sizeof(glm::vec3), NORMAL}, {0, 2, VK_FORMAT_R32G32_SFLOAT, offsetof(GenericVertex, UV), sizeof(glm::vec2), UV}});
+	VDSkyBox.init(this, {{0, sizeof(SkyBoxVertex), VK_VERTEX_INPUT_RATE_VERTEX}}, {{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(SkyBoxVertex, pos), sizeof(glm::vec3), POSITION}});
 
 	// Pipelines [Shader couples]
 	PToon.init(this, &VDGeneric, "shaders/Vert.spv", "shaders/ToonFrag.spv", {&DSLGlobal, &DSLToon});
@@ -117,7 +117,7 @@ void Application::localInit()
 	TBullet.init(this, "textures/Textures.png");
 	TUpgrade.init(this, "textures/Textures.png");
 	TTitle1.init(this, "textures/Textures.png");
-	TGrass.init(this, "textures/TCom_Pavement_TerracottaAntique_2K_albedo.jpg");
+	TGrass.init(this, "textures/grass.jpg");
 
 	calculateDescriptorPoolSizes();
 
@@ -148,16 +148,16 @@ void Application::pipelinesAndDescriptorSetsInit()
 	DSBullets.resize(MAX_BULLET_INSTANCES);
 	for (int i = 0; i < MAX_BULLET_INSTANCES; ++i)
 	{
-		DSBullets[i].init(this, &DSLToon, { &TBullet });
+		DSBullets[i].init(this, &DSLToon, {&TBullet});
 	}
 	DSUpgrades.resize(MAX_UPGRADE_INSTANCES);
 	for (int i = 0; i < MAX_UPGRADE_INSTANCES; ++i)
 	{
 		DSUpgrades[i].init(this, &DSLToon, {&TUpgrade});
 	}
-	DSFloor.init(this, &DSLToon, { &TFloor });
-	DSGrass.init(this, &DSLToon, { &TGrass });
-	DSSkyBox.init(this, &DSLSkyBox, { &TSkyBox });
+	DSFloor.init(this, &DSLToon, {&TFloor});
+	DSGrass.init(this, &DSLToon, {&TGrass});
+	DSSkyBox.init(this, &DSLSkyBox, {&TSkyBox});
 	DSTitle1.init(this, &DSLTitles, {&TTitle1});
 	DSGlobal.init(this, &DSLGlobal, {});
 
@@ -302,7 +302,7 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 	{
 		timeManager.update();
 		float passedT = timeManager.getPassedTime();
-		ViewMatrix = glm::lookAt( glm::vec3(0.0f, 15.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		ViewMatrix = glm::lookAt(glm::vec3(0.0f, 15.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		float fov = glm::radians(45.0f);
 		glm::mat4 M = glm::perspective(fov, Ar, 0.1f, 500.0f);
 		M[1][1] *= -1; // Flip Y-axis for Vulkan coordinate
@@ -384,9 +384,9 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 	{
 		float shakeAmount = 0.004f * (std::abs(car.getSpeed()) - 0.9f * MAX_SPEED) / (0.1f * MAX_SPEED);
 		ViewPrj = glm::translate(ViewPrj, glm::vec3(
-			0.0f,
-			shakeAmount * (std::sin(deltaT * 50.0f) + std::cos(deltaT * 47.0f)),
-			shakeAmount * (std::cos(deltaT * 53.0f) + std::sin(deltaT * 59.0f))));
+											  0.0f,
+											  shakeAmount * (std::sin(deltaT * 50.0f) + std::cos(deltaT * 47.0f)),
+											  shakeAmount * (std::cos(deltaT * 53.0f) + std::sin(deltaT * 59.0f))));
 	}
 
 	// Update global uniforms
@@ -395,7 +395,7 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 
 	uboGlobal.lightPos[0].v = glm::vec3(0.0f);
 	uboGlobal.lightDir[0].v = glm::vec3(0.0f, 1.0f, 0.0f);
-	uboGlobal.lightColor[0].v = glm::vec4(1.0f);
+	uboGlobal.lightColor[0].v = glm::vec4(0.8f);
 	uboGlobal.type[0].t = 0.0f;
 
 	for (int i = 0; i < NLIGHTS - 1; i++)
@@ -478,8 +478,8 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 	// Update Grass uniforms
 	ToonUniformBufferObject uboGrass{};
 	ToonParUniformBufferObject uboToonParG{};
-	uboToonParF.edgeDetectionOn = 0.0f;
-	uboToonParF.textureMultiplier = FLOOR_DIAM / 32.0;
+	uboToonParG.edgeDetectionOn = 0.0f;	  // Adjust this if you want edge detection for grass
+	uboToonParG.textureMultiplier = FLOOR_DIAM / 4.0; // Adjust this to control texture tiling
 	uboGrass.mMat = glm::mat4(1.0f);
 	uboGrass.mvpMat = ViewPrj * uboGrass.mMat;
 	uboGrass.nMat = glm::transpose(glm::inverse(uboGrass.mMat));
@@ -493,7 +493,7 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 	DSSkyBox.map(currentImage, &uboSky, 0);
 }
 
-glm::vec3 generateRandomPosition(Car car, const float minRadius, const float maxRadius, std::mt19937& rng, const float floorDiam)
+glm::vec3 generateRandomPosition(Car car, const float minRadius, const float maxRadius, std::mt19937 &rng, const float floorDiam)
 {
 	std::uniform_real_distribution<float> distRadius(minRadius, maxRadius);
 	std::uniform_real_distribution<float> distAngle(0.0f, 2.0f * glm::pi<float>());
