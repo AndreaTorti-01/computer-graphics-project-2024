@@ -104,6 +104,7 @@ void Application::localInit()
 	MSkyBox.init(this, &VDSkyBox, "models/SkyBox.obj", OBJ);
 	MFloor.init(this, &VDGeneric, "models/squarefloor128.obj", OBJ);
 	MGrass.init(this, &VDGeneric, "models/outergrass16.obj", OBJ);
+	MFence.init(this, &VDGeneric, "models/Fence.obj", OBJ);
 	MBullet.init(this, &VDGeneric, "models/Bullet.obj", OBJ);
 	MUpgrade.init(this, &VDGeneric, "models/Upgrade.obj", OBJ);
 	MTitle1.init(this, &VDGeneric, "models/Title1.obj", OBJ);
@@ -118,6 +119,7 @@ void Application::localInit()
 	TUpgrade.init(this, "textures/Textures.png");
 	TTitle1.init(this, "textures/Textures.png");
 	TGrass.init(this, "textures/grass.jpg");
+	TFence.init(this, "textures/T_Fence.jpg");
 
 	calculateDescriptorPoolSizes();
 
@@ -157,6 +159,7 @@ void Application::pipelinesAndDescriptorSetsInit()
 	}
 	DSFloor.init(this, &DSLToon, {&TFloor});
 	DSGrass.init(this, &DSLToon, {&TGrass});
+	DSFence.init(this, &DSLToon, {&TFence});
 	DSSkyBox.init(this, &DSLSkyBox, {&TSkyBox});
 	DSTitle1.init(this, &DSLTitles, {&TTitle1});
 	DSGlobal.init(this, &DSLGlobal, {});
@@ -185,6 +188,7 @@ void Application::pipelinesAndDescriptorSetsCleanup()
 	}
 	DSFloor.cleanup();
 	DSGrass.cleanup();
+	DSFence.cleanup();
 	DSSkyBox.cleanup();
 	DSTitle1.cleanup();
 	DSGlobal.cleanup();
@@ -204,6 +208,7 @@ void Application::localCleanup()
 	TUpgrade.cleanup();
 	TTitle1.cleanup();
 	TGrass.cleanup();
+	TFence.cleanup();
 
 	MCar.cleanup();
 	MMike.cleanup();
@@ -213,6 +218,7 @@ void Application::localCleanup()
 	MUpgrade.cleanup();
 	MTitle1.cleanup();
 	MGrass.cleanup();
+	MFence.cleanup();
 
 	DSLToon.cleanup();
 	DSLMike.cleanup();
@@ -244,6 +250,13 @@ void Application::populateCommandBuffer(VkCommandBuffer commandBuffer, int curre
 	DSGlobal.bind(commandBuffer, PToon, 0, currentImage);
 	DSGrass.bind(commandBuffer, PToon, 1, currentImage);
 	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MGrass.indices.size()), 1, 0, 0, 0);
+
+	// Render Fence
+	PToon.bind(commandBuffer);
+	MFence.bind(commandBuffer);
+	DSGlobal.bind(commandBuffer, PToon, 0, currentImage);
+	DSFence.bind(commandBuffer, PToon, 1, currentImage);
+	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MFence.indices.size()), 1, 0, 0, 0);
 
 	// Render Car
 	PToon.bind(commandBuffer);
@@ -486,6 +499,18 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 
 	DSGrass.map(currentImage, &uboGrass, 0);
 	DSGrass.map(currentImage, &uboToonParG, 2);
+
+	// Update Fence uniforms
+	ToonUniformBufferObject uboFence{};
+	ToonParUniformBufferObject uboToonParFe{};
+	uboToonParFe.edgeDetectionOn = 1.0f;
+	uboToonParFe.textureMultiplier = FLOOR_DIAM / 32.0f;
+	uboFence.mMat = glm::mat4(1.0f);
+	uboFence.mvpMat = ViewPrj * uboFence.mMat;
+	uboFence.nMat = glm::transpose(glm::inverse(uboFence.mMat));
+
+	DSFence.map(currentImage, &uboFence, 0);
+	DSFence.map(currentImage, &uboToonParFe, 2);
 
 	// Update Skybox uniforms
 	SkyBoxUniformBufferObject uboSky{};
