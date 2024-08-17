@@ -79,6 +79,8 @@ void Application::localInit()
 
 	DSLSkyBox.init(this, {{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, sizeof(SkyBoxUniformBufferObject), 1},
 						  {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1}});
+	DSLTitles.init(this, {{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(ToonUniformBufferObject), 1},
+						  {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1}});
 
 	// Initialize Vertex Descriptors
 	VDGeneric.init(this, {{0, sizeof(GenericVertex), VK_VERTEX_INPUT_RATE_VERTEX}}, {{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(GenericVertex, pos), sizeof(glm::vec3), POSITION}, {0, 1, VK_FORMAT_R32G32B32_SFLOAT, offsetof(GenericVertex, norm), sizeof(glm::vec3), NORMAL}, {0, 2, VK_FORMAT_R32G32_SFLOAT, offsetof(GenericVertex, UV), sizeof(glm::vec2), UV}});
@@ -87,6 +89,7 @@ void Application::localInit()
 	// Pipelines [Shader couples]
 	PToon.init(this, &VDGeneric, "shaders/Vert.spv", "shaders/ToonFrag.spv", {&DSLGlobal, &DSLToon});
 	PMike.init(this, &VDGeneric, "shaders/MikeVert.spv", "shaders/MikeFrag.spv", {&DSLGlobal, &DSLMike});
+	PTitles.init(this, &VDGeneric, "shaders/TitleVert.spv", "shaders/TitleFrag.spv", {&DSLTitles});
 	PSkyBox.init(this, &VDSkyBox, "shaders/SkyBoxVert.spv", "shaders/SkyBoxFrag.spv", {&DSLSkyBox});
 	PSkyBox.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, false);
 
@@ -97,6 +100,7 @@ void Application::localInit()
 	MFloor.init(this, &VDGeneric, "models/newFloor.obj", OBJ);
 	MBullet.init(this, &VDGeneric, "models/Bullet.obj", OBJ);
 	MUpgrade.init(this, &VDGeneric, "models/Upgrade.obj", OBJ);
+	MTitle1.init(this, &VDGeneric, "models/Title1.obj", OBJ);
 
 	// Initialize Textures
 	TGeneric.init(this, "textures/Textures.png");
@@ -106,6 +110,7 @@ void Application::localInit()
 	TCar.init(this, "textures/T_Car.jpg");
 	TBullet.init(this, "textures/Textures.png");
 	TUpgrade.init(this, "textures/Textures.png");
+	TTitle1.init(this, "textures/Textures.png");
 
 	calculateDescriptorPoolSizes();
 
@@ -128,6 +133,7 @@ void Application::pipelinesAndDescriptorSetsInit()
 	PMike.create();
 	PToon.create();
 	PSkyBox.create();
+	PTitles.create();
 
 	// Initialize descriptor sets
 	DSCar.init(this, &DSLToon, {&TGeneric});
@@ -144,6 +150,7 @@ void Application::pipelinesAndDescriptorSetsInit()
 	}
 	DSFloor.init(this, &DSLToon, {&TFloor});
 	DSSkyBox.init(this, &DSLSkyBox, {&TSkyBox});
+	DSTitle1.init(this, &DSLTitles, {&TTitle1});
 	DSGlobal.init(this, &DSLGlobal, {});
 
 	// Initialize text pipelines and descriptor sets
@@ -156,6 +163,7 @@ void Application::pipelinesAndDescriptorSetsCleanup()
 	PToon.cleanup();
 	PSkyBox.cleanup();
 	PMike.cleanup();
+	PTitles.cleanup();
 
 	DSCar.cleanup();
 	DSMikes.cleanup();
@@ -163,12 +171,13 @@ void Application::pipelinesAndDescriptorSetsCleanup()
 	{
 		ds.cleanup();
 	}
-		for (auto &ds : DSUpgrades)
+	for (auto &ds : DSUpgrades)
 	{
 		ds.cleanup();
 	}
 	DSFloor.cleanup();
 	DSSkyBox.cleanup();
+	DSTitle1.cleanup();
 	DSGlobal.cleanup();
 
 	txt.pipelinesAndDescriptorSetsCleanup();
@@ -184,6 +193,7 @@ void Application::localCleanup()
 	TCar.cleanup();
 	TBullet.cleanup();
 	TUpgrade.cleanup();
+	TTitle1.cleanup();
 
 	MCar.cleanup();
 	MMike.cleanup();
@@ -191,15 +201,18 @@ void Application::localCleanup()
 	MFloor.cleanup();
 	MBullet.cleanup();
 	MUpgrade.cleanup();
+	MTitle1.cleanup();
 
 	DSLToon.cleanup();
 	DSLMike.cleanup();
 	DSLSkyBox.cleanup();
 	DSLGlobal.cleanup();
+	DSLTitles.cleanup();
 
 	PToon.destroy();
 	PMike.destroy();
 	PSkyBox.destroy();
+	PTitles.destroy();
 
 	txt.localCleanup();
 }
@@ -248,6 +261,11 @@ void Application::populateCommandBuffer(VkCommandBuffer commandBuffer, int curre
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MUpgrade.indices.size()), 1, 0, 0, 0);
 	}
 
+	PTitles.bind(commandBuffer);
+	MTitle1.bind(commandBuffer);
+	DSTitle1.bind(commandBuffer, PTitles, 0, currentImage);
+	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MTitle1.indices.size()), 1, 0, 0, 0);
+
 	// Render SkyBox
 	PSkyBox.bind(commandBuffer);
 	MSkyBox.bind(commandBuffer);
@@ -264,6 +282,19 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 
 	if (currScene == 0)
 	{
+		timeManager.update();
+		float passedT = timeManager.getPassedTime();
+		ViewMatrix = glm::lookAt( glm::vec3(0.0f, 15.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		float fov = glm::radians(45.0f);
+		glm::mat4 M = glm::perspective(fov, Ar, 0.1f, 500.0f);
+		M[1][1] *= -1; // Flip Y-axis for Vulkan coordinate
+		glm::mat4 ViewPrj = M * ViewMatrix;
+		ToonUniformBufferObject tubo{};
+		tubo.mMat = glm::mat4(5.0f);
+		tubo.mMat = glm::rotate(tubo.mMat, glm::radians(90.0f) * passedT, glm::vec3(0.0f, 0.0f, 1.0f));
+		tubo.mvpMat = ViewPrj * tubo.mMat;
+		tubo.nMat = glm::inverse(glm::transpose(tubo.mMat));
+		DSTitle1.map(currentImage, &tubo, 0);
 		if (glfwGetKey(window, GLFW_KEY_SPACE))
 		{
 			currScene = 1;
@@ -380,8 +411,8 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 		uboMike.mvpMat[i] = ViewPrj * uboMike.mMat[i];
 		uboMike.nMat[i] = glm::inverse(glm::transpose(uboMike.mMat[i]));
 		uboMike.showDamage[i] = 0.0f;
-		if (mikes[i].getDamaged()) uboMike.showDamage[i] = 1.0f;
-         
+		if (mikes[i].getDamaged())
+			uboMike.showDamage[i] = 1.0f;
 	}
 	DSMikes.map(currentImage, &uboMike, 0);
 

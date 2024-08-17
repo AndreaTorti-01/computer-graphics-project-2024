@@ -18,23 +18,23 @@ class Application : public BaseProject
 {
 protected:
 	// Descriptor Layouts
-	DescriptorSetLayout DSLGlobal, DSLSkyBox, DSLToon, DSLMike;
+	DescriptorSetLayout DSLGlobal, DSLSkyBox, DSLToon, DSLMike, DSLTitles;
 
 	// Vertex formats
 	VertexDescriptor VDGeneric, VDSkyBox;
 
 	// Pipelines
-	Pipeline PToon, PMike, PSkyBox;
+	Pipeline PToon, PMike, PSkyBox, PTitles;
 
 	// Text maker
 	TextMaker txt;
 
 	// Models and textures
-	Model MCar, MMike, MSkyBox, MFloor, MBullet, MUpgrade;
-	Texture TGeneric, TMike, TSkyBox, TFloor, TCar, TBullet, TUpgrade;
+	Model MCar, MMike, MSkyBox, MFloor, MBullet, MUpgrade, MTitle1;
+	Texture TGeneric, TMike, TSkyBox, TFloor, TCar, TBullet, TUpgrade, TTitle1;
 
 	// Descriptor Sets
-	DescriptorSet DSGlobal, DSCar, DSSkyBox, DSFloor, DSMikes;
+	DescriptorSet DSGlobal, DSCar, DSSkyBox, DSFloor, DSMikes, DSTitle1;
 	std::vector<DescriptorSet> DSBullets;
 	std::vector<DescriptorSet> DSUpgrades;
 

@@ -11,6 +11,7 @@ TimeManager::TimeManager()
     mikeSpawnCooldown = 2.0f;
     upgradeSpawnTimer = 0.0f;
     upgradeSpawnCooldown = 2.0f;
+    startOfProgram = std::chrono::steady_clock::now();
     lastAccelleration = std::chrono::steady_clock::now();
 }
 
@@ -19,6 +20,12 @@ void TimeManager::update()
     auto currentTime = std::chrono::steady_clock::now();
     deltaTime = std::chrono::duration<float>(currentTime - lastFrameTime).count();
     lastFrameTime = currentTime;
+}
+
+float TimeManager::getPassedTime()
+{
+    auto currentTime = std::chrono::steady_clock::now();
+    return std::chrono::duration<float>(currentTime - startOfProgram).count();
 }
 
 float TimeManager::getDeltaTime() const
