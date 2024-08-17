@@ -29,7 +29,7 @@ Mike::Mike()
 	isAboveFloor = false;
 	isDamaged = false;
 	damageTimer = 0.0;
-	position = glm::vec3(0.0f, -2.0f, 0.0f);
+	position = glm::vec3(0.0f, -10.0f, 0.0f);
 	rotation = 0.0f;
 	speed = 2.0f;
 }
@@ -43,7 +43,7 @@ void Mike::reset()
 	isAboveFloor = false;
 	isDamaged = false;
 	damageTimer = 0.0;
-	position = glm::vec3(0.0f, -2.0f, 0.0f);
+	position = glm::vec3(0.0f, -10.0f, 0.0f);
 	rotation = 0.0f;
 }
 

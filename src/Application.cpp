@@ -117,7 +117,7 @@ void Application::localInit()
 	TBullet.init(this, "textures/Textures.png");
 	TUpgrade.init(this, "textures/Textures.png");
 	TTitle1.init(this, "textures/Textures.png");
-	TGrass.init(this, "textures/grass.jpg");
+	TGrass.init(this, "textures/TCom_Pavement_TerracottaAntique_2K_albedo.jpg");
 
 	calculateDescriptorPoolSizes();
 
@@ -468,7 +468,7 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 	ToonParUniformBufferObject uboToonParF{};
 	uboToonParF.edgeDetectionOn = 0.0f;
 	uboToonParF.textureMultiplier = FLOOR_DIAM / 32.0;
-	uboFloor.mMat = glm::scale(glm::mat4(1.0f), glm::vec3(FLOOR_DIAM));
+	uboFloor.mMat = glm::mat4(1.0f);
 	uboFloor.mvpMat = ViewPrj * uboFloor.mMat;
 	uboFloor.nMat = glm::transpose(glm::inverse(uboFloor.mMat));
 
@@ -477,10 +477,15 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 
 	// Update Grass uniforms
 	ToonUniformBufferObject uboGrass{};
+	ToonParUniformBufferObject uboToonParG{};
+	uboToonParF.edgeDetectionOn = 0.0f;
+	uboToonParF.textureMultiplier = FLOOR_DIAM / 32.0;
 	uboGrass.mMat = glm::mat4(1.0f);
 	uboGrass.mvpMat = ViewPrj * uboGrass.mMat;
 	uboGrass.nMat = glm::transpose(glm::inverse(uboGrass.mMat));
+
 	DSGrass.map(currentImage, &uboGrass, 0);
+	DSGrass.map(currentImage, &uboToonParG, 2);
 
 	// Update Skybox uniforms
 	SkyBoxUniformBufferObject uboSky{};
