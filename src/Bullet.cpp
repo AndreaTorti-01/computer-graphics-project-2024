@@ -33,7 +33,7 @@ void Bullet::update(float deltaTime)
 
 void Bullet::increaseSpeed()
 {
-	bulletSpeed += 2.0f;
+	bulletSpeed = glm::clamp(bulletSpeed + 2.0f, 14.0f, 28.0f);
 }
 
 

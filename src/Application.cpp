@@ -346,7 +346,7 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 
 	uboGlobal.lightPos[0].v = glm::vec3(0.0f);
 	uboGlobal.lightDir[0].v = glm::vec3(0.0f, 1.0f, 0.0f);
-	uboGlobal.lightColor[0].v = glm::vec4(0.6f);
+	uboGlobal.lightColor[0].v = glm::vec4(1.0f);
 	uboGlobal.type[0].t = 0.0f;
 
 	for (int i = 0; i < NLIGHTS - 1; i++)

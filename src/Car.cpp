@@ -143,12 +143,12 @@ void Car::check_collisions(std::array<Mike, MAX_MIKE_INSTANCES> &mikes, std::arr
 {
     for (auto &up : upgrades)
     {
-        if(glm::distance(up.getPosition(), position) <= 0.5)
+        if(glm::distance(up.getPosition(), position) <= 0.8)
         {
             switch(up.getUpgrade()){
                 case 0:
                     for(auto &bullet : bullets){
-                        shootCooldown = glm::clamp(shootCooldown - 0.5, 0.2, 2.0);
+                        shootCooldown = glm::clamp(shootCooldown - 0.1, 0.2, 2.0);
                     }
                     break;
                 case 1:

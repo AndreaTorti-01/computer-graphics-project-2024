@@ -7,6 +7,7 @@ Upgrade::Upgrade(){
 	rng = std::mt19937(rd());
 	position = glm::vec3(0.0f, -2.0f, 0.0f);
 	position4 = glm::translate(glm::mat4(1.0f), position);
+	position4 = glm::scale(position4, glm::vec3(2.0f, 2.0f, 2.0f));
 	rotation = 0.0f;
 	isAboveFloor = false;
 }
