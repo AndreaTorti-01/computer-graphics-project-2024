@@ -24,6 +24,7 @@
     <ClInclude Include="include\Entity.hpp" />
     <ClInclude Include="include\Mike.hpp" />
     <ClInclude Include="include\TimeManager.hpp" />
+    <ClInclude Include="include\Upgrade.hpp" />
     <ClInclude Include="include\Utils.hpp" />
     <ClInclude Include="libraries\glm_with_defines.hpp" />
     <ClInclude Include="libraries\json.hpp" />
@@ -53,6 +54,7 @@
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\Mike.cpp" />
     <ClCompile Include="src\TimeManager.cpp" />
+    <ClCompile Include="src\Upgrade.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="andrea_windows_libraries_instructions.txt" />
