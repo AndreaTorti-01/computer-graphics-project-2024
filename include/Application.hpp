@@ -30,11 +30,11 @@ protected:
 	TextMaker txt;
 
 	// Models and textures
-	Model MCar, MMike, MSkyBox, MFloor, MBullet, MGrass, MFence, MUpgrade, MTitle1, MBackground;
-	Texture TGeneric, TMike, TSkyBox, TFloor, TCar, TBullet, TGrass, TFence, TUpgrade, TTitle1, TBackground;
+	Model MCar, MMike, MSkyBox, MFloor, MBullet, MGrass, MFence, MUpgrade, MTitle1, MTitle2, MBackground;
+	Texture TGeneric, TMike, TSkyBox, TFloor, TCar, TBullet, TGrass, TFence, TUpgrade, TTitle1, TTitle2, TBackground;
 
 	// Descriptor Sets
-	DescriptorSet DSGlobal, DSCar, DSSkyBox, DSFloor, DSGrass, DSFence, DSMikes, DSTitle1, DSBackground;
+	DescriptorSet DSGlobal, DSCar, DSSkyBox, DSFloor, DSGrass, DSFence, DSMikes, DSTitle1, DSTitle2, DSBackground;
 	std::vector<DescriptorSet> DSBullets;
 	std::vector<DescriptorSet> DSUpgrades;
 

@@ -109,6 +109,7 @@ void Application::localInit()
 	MUpgrade.init(this, &VDGeneric, "models/Upgrade.obj", OBJ);
 	MBackground.init(this, &VDGeneric, "models/Background.obj", OBJ);
 	MTitle1.init(this, &VDGeneric, "models/Title1.obj", OBJ);
+	MTitle2.init(this, &VDGeneric, "models/Title2.obj", OBJ);
 
 	// Initialize Textures
 	TGeneric.init(this, "textures/Textures.png");
@@ -120,6 +121,7 @@ void Application::localInit()
 	TUpgrade.init(this, "textures/Textures.png");
 	TBackground.init(this, "textures/grass.jpg");
 	TTitle1.init(this, "textures/Textures.png");
+	TTitle2.init(this, "textures/Textures.png");
 	TGrass.init(this, "textures/grass.jpg");
 	TFence.init(this, "textures/T_Fence.jpg");
 
@@ -130,7 +132,7 @@ void Application::localInit()
 	outText = {
 		{3, {"Press SPACE to start", " ", "", ""}, 0, 0},
 		{2, {"Evade the mikes", "And kill em all", "", ""}, 0, 0},
-		{1, {"GAME OVER", "press ESC to close", "", ""}, 0, 0}};
+		{1, {"press ESC to close", "", "", ""}, 0, 0}};
 	txt.init(this, &outText);
 
 	// Initialize Ubos
@@ -166,6 +168,7 @@ void Application::pipelinesAndDescriptorSetsInit()
 	DSFence.init(this, &DSLToon, {&TFence});
 	DSSkyBox.init(this, &DSLSkyBox, {&TSkyBox});
 	DSTitle1.init(this, &DSLTitles, {&TTitle1});
+	DSTitle2.init(this, &DSLTitles, {&TTitle2});
 	DSBackground.init(this, &DSLTitles, {&TBackground});
 	DSGlobal.init(this, &DSLGlobal, {});
 
@@ -196,6 +199,7 @@ void Application::pipelinesAndDescriptorSetsCleanup()
 	DSFence.cleanup();
 	DSSkyBox.cleanup();
 	DSTitle1.cleanup();
+	DSTitle2.cleanup();
 	DSBackground.cleanup();
 	DSGlobal.cleanup();
 
@@ -213,6 +217,7 @@ void Application::localCleanup()
 	TBullet.cleanup();
 	TUpgrade.cleanup();
 	TTitle1.cleanup();
+	TTitle2.cleanup();
 	TBackground.cleanup();
 	TGrass.cleanup();
 	TFence.cleanup();
@@ -224,6 +229,7 @@ void Application::localCleanup()
 	MBullet.cleanup();
 	MUpgrade.cleanup();
 	MTitle1.cleanup();
+	MTitle2.cleanup();
 	MBackground.cleanup();
 	MGrass.cleanup();
 	MFence.cleanup();
@@ -300,11 +306,16 @@ void Application::populateCommandBuffer(VkCommandBuffer commandBuffer, int curre
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MUpgrade.indices.size()), 1, 0, 0, 0);
 	}
 
-	// Render Title
+	// Render Titles
 	PTitles.bind(commandBuffer);
 	MTitle1.bind(commandBuffer);
 	DSTitle1.bind(commandBuffer, PTitles, 0, currentImage);
 	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MTitle1.indices.size()), 1, 0, 0, 0);
+
+	PTitles.bind(commandBuffer);
+	MTitle2.bind(commandBuffer);
+	DSTitle2.bind(commandBuffer, PTitles, 0, currentImage);
+	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MTitle2.indices.size()), 1, 0, 0, 0);
 
 	// Render Title background
 	PTitles.bind(commandBuffer);
@@ -364,6 +375,17 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 	}
 	if (currScene == 2)
 	{
+		timeManager.update();
+		float passedT = timeManager.getPassedTime();
+
+		tubo.mMat = glm::mat4(5.0f);
+		tubo.mMat = glm::rotate(tubo.mMat, glm::radians(90.0f) * passedT, glm::vec3(0.0f, 0.0f, 1.0f));
+		tubo.mvpMat = TitleViewPrj * tubo.mMat;
+		tubo.nMat = glm::inverse(glm::transpose(tubo.mMat));
+
+		DSTitle2.map(currentImage, &tubo, 0);
+		DSBackground.map(currentImage, &tuboB, 0);
+
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE))
 		{
 			glfwSetWindowShouldClose(window, 1);
