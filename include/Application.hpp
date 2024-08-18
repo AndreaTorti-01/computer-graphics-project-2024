@@ -30,11 +30,11 @@ protected:
 	TextMaker txt;
 
 	// Models and textures
-	Model MCar, MMike, MSkyBox, MFloor, MBullet, MGrass, MFence, MUpgrade, MTitle1;
-	Texture TGeneric, TMike, TSkyBox, TFloor, TCar, TBullet, TGrass, TFence, TUpgrade, TTitle1;
+	Model MCar, MMike, MSkyBox, MFloor, MBullet, MGrass, MFence, MUpgrade, MTitle1, MBackground;
+	Texture TGeneric, TMike, TSkyBox, TFloor, TCar, TBullet, TGrass, TFence, TUpgrade, TTitle1, TBackground;
 
 	// Descriptor Sets
-	DescriptorSet DSGlobal, DSCar, DSSkyBox, DSFloor, DSGrass, DSFence, DSMikes, DSTitle1;
+	DescriptorSet DSGlobal, DSCar, DSSkyBox, DSFloor, DSGrass, DSFence, DSMikes, DSTitle1, DSBackground;
 	std::vector<DescriptorSet> DSBullets;
 	std::vector<DescriptorSet> DSUpgrades;
 
@@ -49,6 +49,8 @@ protected:
 	float CamBeta = 0.0f;
 	float Ar; // Aspect ratio
 	glm::mat4 ViewMatrix;
+	glm::mat4 TitleViewPrj;
+
 	bool isIsometricView = false;
 
 	// Car position matrix
@@ -61,8 +63,9 @@ protected:
 	TimeManager timeManager;
 
 	// Ubos
-
 	SkyBoxUniformBufferObject uboSky{};
+	ToonUniformBufferObject tubo{};
+	ToonUniformBufferObject tuboB{};
 
 	// Descriptor pool sizes
 	int totalUniformBlocks = 0;
@@ -97,6 +100,8 @@ protected:
 	void updateUniformBuffer(uint32_t currentImage) override;
 
 	void calculateDescriptorPoolSizes();
+
+	void initConstantUbos();
 
 	// Function to generate a random position around the car within the floor boundaries
 	glm::vec3 generateRandomPosition(Car car, const float minRadius, const float maxRadius, std::mt19937 &rng, const float floorDiam);

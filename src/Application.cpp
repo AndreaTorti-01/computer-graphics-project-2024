@@ -107,6 +107,7 @@ void Application::localInit()
 	MFence.init(this, &VDGeneric, "models/Fence.obj", OBJ);
 	MBullet.init(this, &VDGeneric, "models/Bullet.obj", OBJ);
 	MUpgrade.init(this, &VDGeneric, "models/Upgrade.obj", OBJ);
+	MBackground.init(this, &VDGeneric, "models/Background.obj", OBJ);
 	MTitle1.init(this, &VDGeneric, "models/Title1.obj", OBJ);
 
 	// Initialize Textures
@@ -117,6 +118,7 @@ void Application::localInit()
 	TCar.init(this, "textures/T_Car.jpg");
 	TBullet.init(this, "textures/Textures.png");
 	TUpgrade.init(this, "textures/Textures.png");
+	TBackground.init(this, "textures/grass.jpg");
 	TTitle1.init(this, "textures/Textures.png");
 	TGrass.init(this, "textures/grass.jpg");
 	TFence.init(this, "textures/T_Fence.jpg");
@@ -131,6 +133,8 @@ void Application::localInit()
 		{1, {"GAME OVER", "press ESC to close", "", ""}, 0, 0}};
 	txt.init(this, &outText);
 
+	// Initialize Ubos
+	initConstantUbos();
 	// Initialize matrices
 	ViewMatrix = glm::translate(glm::mat4(1), -CamPos);
 }
@@ -162,6 +166,7 @@ void Application::pipelinesAndDescriptorSetsInit()
 	DSFence.init(this, &DSLToon, {&TFence});
 	DSSkyBox.init(this, &DSLSkyBox, {&TSkyBox});
 	DSTitle1.init(this, &DSLTitles, {&TTitle1});
+	DSBackground.init(this, &DSLTitles, {&TBackground});
 	DSGlobal.init(this, &DSLGlobal, {});
 
 	// Initialize text pipelines and descriptor sets
@@ -191,6 +196,7 @@ void Application::pipelinesAndDescriptorSetsCleanup()
 	DSFence.cleanup();
 	DSSkyBox.cleanup();
 	DSTitle1.cleanup();
+	DSBackground.cleanup();
 	DSGlobal.cleanup();
 
 	txt.pipelinesAndDescriptorSetsCleanup();
@@ -207,6 +213,7 @@ void Application::localCleanup()
 	TBullet.cleanup();
 	TUpgrade.cleanup();
 	TTitle1.cleanup();
+	TBackground.cleanup();
 	TGrass.cleanup();
 	TFence.cleanup();
 
@@ -217,6 +224,7 @@ void Application::localCleanup()
 	MBullet.cleanup();
 	MUpgrade.cleanup();
 	MTitle1.cleanup();
+	MBackground.cleanup();
 	MGrass.cleanup();
 	MFence.cleanup();
 
@@ -292,10 +300,17 @@ void Application::populateCommandBuffer(VkCommandBuffer commandBuffer, int curre
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MUpgrade.indices.size()), 1, 0, 0, 0);
 	}
 
+	// Render Title
 	PTitles.bind(commandBuffer);
 	MTitle1.bind(commandBuffer);
 	DSTitle1.bind(commandBuffer, PTitles, 0, currentImage);
 	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MTitle1.indices.size()), 1, 0, 0, 0);
+
+	// Render Title background
+	PTitles.bind(commandBuffer);
+	MBackground.bind(commandBuffer);
+	DSBackground.bind(commandBuffer, PTitles, 0, currentImage);
+	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MBackground.indices.size()), 1, 0, 0, 0);
 
 	// Render SkyBox
 	PSkyBox.bind(commandBuffer);
@@ -315,17 +330,31 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 	{
 		timeManager.update();
 		float passedT = timeManager.getPassedTime();
-		ViewMatrix = glm::lookAt(glm::vec3(0.0f, 15.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		float fov = glm::radians(45.0f);
-		glm::mat4 M = glm::perspective(fov, Ar, 0.1f, 500.0f);
-		M[1][1] *= -1; // Flip Y-axis for Vulkan coordinate
-		glm::mat4 ViewPrj = M * ViewMatrix;
-		ToonUniformBufferObject tubo{};
+
 		tubo.mMat = glm::mat4(5.0f);
 		tubo.mMat = glm::rotate(tubo.mMat, glm::radians(90.0f) * passedT, glm::vec3(0.0f, 0.0f, 1.0f));
-		tubo.mvpMat = ViewPrj * tubo.mMat;
+		tubo.mvpMat = TitleViewPrj * tubo.mMat;
 		tubo.nMat = glm::inverse(glm::transpose(tubo.mMat));
+
 		DSTitle1.map(currentImage, &tubo, 0);
+
+		ToonUniformBufferObject uboCar{};
+		ToonParUniformBufferObject uboToonParC{};
+		uboToonParC.edgeDetectionOn = 1.0f;
+		uboToonParC.textureMultiplier = 1.0f;
+		uboCar.mMat = glm::translate(glm::mat4(3.0f), glm::vec3(0.0f, -40.0f, 0.0f));
+		uboCar.mMat = glm::rotate(uboCar.mMat, glm::radians(-60.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		uboCar.mMat = glm::rotate(uboCar.mMat, glm::radians(90.0f) * passedT, glm::vec3(0.0f, 1.0f, 0.0f));
+		
+		uboCar.mvpMat = TitleViewPrj * uboCar.mMat;
+		uboCar.nMat = glm::inverse(uboCar.mMat);
+
+		DSCar.map(currentImage, &uboCar, 0);
+		DSCar.map(currentImage, &uboToonParC, 2);
+
+		
+		DSBackground.map(currentImage, &tuboB, 0);
+
 		if (glfwGetKey(window, GLFW_KEY_SPACE))
 		{
 			currScene = 1;
@@ -491,7 +520,7 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 	// Update Grass uniforms
 	ToonUniformBufferObject uboGrass{};
 	ToonParUniformBufferObject uboToonParG{};
-	uboToonParG.edgeDetectionOn = 0.0f;	  // Adjust this if you want edge detection for grass
+	uboToonParG.edgeDetectionOn = 0.0f;				  // Adjust this if you want edge detection for grass
 	uboToonParG.textureMultiplier = FLOOR_DIAM / 4.0; // Adjust this to control texture tiling
 	uboGrass.mMat = glm::mat4(1.0f);
 	uboGrass.mvpMat = ViewPrj * uboGrass.mMat;
@@ -516,6 +545,19 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 	SkyBoxUniformBufferObject uboSky{};
 	uboSky.mvpMat = M * glm::mat4(glm::mat3(ViewMatrix)); // Remove translation from view matrix
 	DSSkyBox.map(currentImage, &uboSky, 0);
+}
+
+void Application::initConstantUbos()
+{
+	ViewMatrix = glm::lookAt(glm::vec3(0.0f, 15.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	float fov = glm::radians(45.0f);
+	glm::mat4 M = glm::perspective(fov, Ar, 0.1f, 500.0f);
+	M[1][1] *= -1; // Flip Y-axis for Vulkan coordinate
+	TitleViewPrj = M * ViewMatrix;
+
+	tuboB.mMat = glm::translate(glm::scale(glm::mat4(1.0f), glm::vec3(100.0f, 50.0f, 50.0f)), glm::vec3(0.0f, -6.0f, 0.0f));
+	tuboB.mvpMat = TitleViewPrj * tuboB.mMat;
+	tuboB.nMat = glm::inverse(glm::transpose(tuboB.mMat));
 }
 
 glm::vec3 generateRandomPosition(Car car, const float minRadius, const float maxRadius, std::mt19937 &rng, const float floorDiam)
