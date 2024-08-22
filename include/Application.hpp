@@ -18,23 +18,23 @@ class Application : public BaseProject
 {
 protected:
 	// Descriptor Layouts
-	DescriptorSetLayout DSLGlobal, DSLSkyBox, DSLToon, DSLMike, DSLTitles;
+	DescriptorSetLayout DSLGlobal, DSLSkyBox, DSLToon, DSLMike, DSLTitles, DSLTrophy;
 
 	// Vertex formats
 	VertexDescriptor VDGeneric, VDSkyBox;
 
 	// Pipelines
-	Pipeline PToon, PMike, PSkyBox, PTitles;
+	Pipeline PToon, PMike, PSkyBox, PTitles, PTrophy;
 
 	// Text maker
 	TextMaker txt;
 
 	// Models and textures
-	Model MCar, MMike, MSkyBox, MFloor, MBullet, MGrass, MFence, MUpgrade, MTitle1, MTitle2, MBackground;
-	Texture TGeneric, TMike, TSkyBox, TFloor, TCar, TBullet, TGrass, TFence, TUpgrade, TTitle1, TTitle2, TBackground;
+	Model MCar, MMike, MSkyBox, MFloor, MBullet, MGrass, MFence, MUpgrade, MTitle1, MTitle2, MBackground, MTrophy;
+	Texture TGeneric, TMike, TSkyBox, TFloor, TCar, TBullet, TGrass, TFence, TUpgrade, TTitle1, TTitle2, TBackground, TTrophy1, TTrophy2, TTrophy3;
 
 	// Descriptor Sets
-	DescriptorSet DSGlobal, DSCar, DSSkyBox, DSFloor, DSGrass, DSFence, DSMikes, DSTitle1, DSTitle2, DSBackground;
+	DescriptorSet DSGlobal, DSCar, DSSkyBox, DSFloor, DSGrass, DSFence, DSMikes, DSTitle1, DSTitle2, DSBackground, DSTrophy;
 	std::vector<DescriptorSet> DSBullets;
 	std::vector<DescriptorSet> DSUpgrades;
 

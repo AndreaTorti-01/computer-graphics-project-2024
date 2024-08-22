@@ -3,14 +3,13 @@
 #include <vector>
 #include <TextMaker.hpp>
 #include <glm_with_defines.hpp>
-	
+
 constexpr auto MAX_MIKE_INSTANCES = 15;
 constexpr auto MAX_BULLET_INSTANCES = 3;
 constexpr auto MAX_UPGRADE_INSTANCES = 3;
 constexpr auto FLOOR_DIAM = 128.0f; // multiple of 2
 constexpr auto NLIGHTS = MAX_MIKE_INSTANCES + 1;
 constexpr auto MAX_SPEED = 10.0f;
-
 
 // Uniform buffer object for toon shading
 struct ToonUniformBufferObject
@@ -22,18 +21,25 @@ struct ToonUniformBufferObject
 
 struct MikeUniformBufferObject
 {
-		alignas(16) glm::mat4 mvpMat[MAX_MIKE_INSTANCES];
-		alignas(16) glm::mat4 mMat[MAX_MIKE_INSTANCES];
-		alignas(16) glm::mat4 nMat[MAX_MIKE_INSTANCES];
-		alignas(4)  float     showDamage[MAX_MIKE_INSTANCES];
+	alignas(16) glm::mat4 mvpMat[MAX_MIKE_INSTANCES];
+	alignas(16) glm::mat4 mMat[MAX_MIKE_INSTANCES];
+	alignas(16) glm::mat4 nMat[MAX_MIKE_INSTANCES];
+	alignas(4) float showDamage[MAX_MIKE_INSTANCES];
 };
 
-struct 	ToonParUniformBufferObject
+struct ToonParUniformBufferObject
 {
 	alignas(4) float textureMultiplier;
 	alignas(4) float edgeDetectionOn;
 };
 
+struct TrophyUniformBufferObject
+{
+	alignas(16) glm::mat4 mvpMat;
+	alignas(16) glm::mat4 mMat; // Model matrix
+	alignas(16) glm::mat4 nMat; // Normal matrix
+	alignas(4) float prize;
+};
 
 // Uniform buffer object for skybox
 struct SkyBoxUniformBufferObject
@@ -56,9 +62,8 @@ struct GlobalUniformBufferObject
 		alignas(16) glm::vec4 v;
 	} lightColor[NLIGHTS];
 
-
 	alignas(16) glm::vec3 eyePos;
-	
+
 	struct
 	{
 		alignas(4) float t;
@@ -92,5 +97,5 @@ struct MikeInstance
 struct UpgradeInstance
 {
 	glm::mat4 position4; // Position of Upgrade instance
-	bool isAboveFloor; // Flag to indicate if Upgrade is above or below the floor
+	bool isAboveFloor;	 // Flag to indicate if Upgrade is above or below the floor
 };

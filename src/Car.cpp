@@ -12,7 +12,7 @@ Car::Car()
     timeSinceLastShot = 0.0f;
     carSpeed = 0.0f;
     currentSteeringAngle = 0.0f;
-    health = 5;
+    health = 1;
     score = 0;
     position = glm::vec3(0.0f, 0.0f, 0.0f);
     position4 = glm::mat4(1.0f);

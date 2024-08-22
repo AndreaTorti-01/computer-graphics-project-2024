@@ -73,6 +73,7 @@ void Application::localInit()
 
 	// Initialize Descriptor Set Layouts
 	DSLGlobal.init(this, {{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(GlobalUniformBufferObject), 1}});
+
 	DSLToon.init(this, {{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(ToonUniformBufferObject), 1},
 						{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1},
 						{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(ToonParUniformBufferObject), 1},
@@ -82,8 +83,14 @@ void Application::localInit()
 						{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1},
 						{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(GlobalUniformBufferObject), 1}});
 
+	DSLTrophy.init(this, {{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(TrophyUniformBufferObject), 1},
+						  {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1},
+						  {2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 1, 1},
+						  {3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 2, 1}});
+
 	DSLSkyBox.init(this, {{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, sizeof(SkyBoxUniformBufferObject), 1},
 						  {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1}});
+
 	DSLTitles.init(this, {{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(ToonUniformBufferObject), 1},
 						  {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1}});
 
@@ -95,6 +102,7 @@ void Application::localInit()
 	PToon.init(this, &VDGeneric, "shaders/Vert.spv", "shaders/ToonFrag.spv", {&DSLGlobal, &DSLToon});
 	PMike.init(this, &VDGeneric, "shaders/MikeVert.spv", "shaders/MikeFrag.spv", {&DSLGlobal, &DSLMike});
 	PTitles.init(this, &VDGeneric, "shaders/TitleVert.spv", "shaders/TitleFrag.spv", {&DSLTitles});
+	PTrophy.init(this, &VDGeneric, "shaders/TrophyVert.spv", "shaders/TrophyFrag.spv", {&DSLTrophy});
 	PSkyBox.init(this, &VDSkyBox, "shaders/SkyBoxVert.spv", "shaders/SkyBoxFrag.spv", {&DSLSkyBox});
 	PSkyBox.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, false);
 
@@ -110,13 +118,14 @@ void Application::localInit()
 	MBackground.init(this, &VDGeneric, "models/Background.obj", OBJ);
 	MTitle1.init(this, &VDGeneric, "models/Title1.obj", OBJ);
 	MTitle2.init(this, &VDGeneric, "models/Title2.obj", OBJ);
+	MTrophy.init(this, &VDGeneric, "models/Trophy.obj", OBJ);
 
 	// Initialize Textures
 	TGeneric.init(this, "textures/Textures.png");
 	TMike.init(this, "textures/T_Mike.png");
 	TSkyBox.init(this, "textures/T_SkyBox.jpg");
 	TFloor.init(this, "textures/TCom_Pavement_TerracottaAntique_2K_albedo.jpg");
-	TCar.init(this, "textures/T_Car.jpg");
+	TCar.init(this, "textures/T_Car.png");
 	TBullet.init(this, "textures/Textures.png");
 	TUpgrade.init(this, "textures/Textures.png");
 	TBackground.init(this, "textures/grass.jpg");
@@ -124,6 +133,9 @@ void Application::localInit()
 	TTitle2.init(this, "textures/Textures.png");
 	TGrass.init(this, "textures/grass.jpg");
 	TFence.init(this, "textures/T_Fence.jpg");
+	TTrophy1.init(this, "textures/T_Trophy1.png");
+	TTrophy2.init(this, "textures/T_Trophy2.png");
+	TTrophy3.init(this, "textures/T_Trophy3.png");
 
 	calculateDescriptorPoolSizes();
 
@@ -149,9 +161,10 @@ void Application::pipelinesAndDescriptorSetsInit()
 	PToon.create();
 	PSkyBox.create();
 	PTitles.create();
+	PTrophy.create();
 
 	// Initialize descriptor sets
-	DSCar.init(this, &DSLToon, {&TGeneric});
+	DSCar.init(this, &DSLToon, {&TCar});
 	DSMikes.init(this, &DSLMike, {&TGeneric});
 	DSBullets.resize(MAX_BULLET_INSTANCES);
 	for (int i = 0; i < MAX_BULLET_INSTANCES; ++i)
@@ -169,6 +182,7 @@ void Application::pipelinesAndDescriptorSetsInit()
 	DSSkyBox.init(this, &DSLSkyBox, {&TSkyBox});
 	DSTitle1.init(this, &DSLTitles, {&TTitle1});
 	DSTitle2.init(this, &DSLTitles, {&TTitle2});
+	DSTrophy.init(this, &DSLTrophy, {&TTrophy1, &TTrophy2, &TTrophy3});
 	DSBackground.init(this, &DSLTitles, {&TBackground});
 	DSGlobal.init(this, &DSLGlobal, {});
 
@@ -183,6 +197,7 @@ void Application::pipelinesAndDescriptorSetsCleanup()
 	PSkyBox.cleanup();
 	PMike.cleanup();
 	PTitles.cleanup();
+	PTrophy.cleanup();
 
 	DSCar.cleanup();
 	DSMikes.cleanup();
@@ -200,6 +215,7 @@ void Application::pipelinesAndDescriptorSetsCleanup()
 	DSSkyBox.cleanup();
 	DSTitle1.cleanup();
 	DSTitle2.cleanup();
+	DSTrophy.cleanup();
 	DSBackground.cleanup();
 	DSGlobal.cleanup();
 
@@ -221,6 +237,9 @@ void Application::localCleanup()
 	TBackground.cleanup();
 	TGrass.cleanup();
 	TFence.cleanup();
+	TTrophy1.cleanup();
+	TTrophy2.cleanup();
+	TTrophy3.cleanup();
 
 	MCar.cleanup();
 	MMike.cleanup();
@@ -233,17 +252,20 @@ void Application::localCleanup()
 	MBackground.cleanup();
 	MGrass.cleanup();
 	MFence.cleanup();
+	MTrophy.cleanup();
 
 	DSLToon.cleanup();
 	DSLMike.cleanup();
 	DSLSkyBox.cleanup();
 	DSLGlobal.cleanup();
 	DSLTitles.cleanup();
+	DSLTrophy.cleanup();
 
 	PToon.destroy();
 	PMike.destroy();
 	PSkyBox.destroy();
 	PTitles.destroy();
+	PTrophy.destroy();
 
 	txt.localCleanup();
 }
@@ -317,6 +339,12 @@ void Application::populateCommandBuffer(VkCommandBuffer commandBuffer, int curre
 	DSTitle2.bind(commandBuffer, PTitles, 0, currentImage);
 	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MTitle2.indices.size()), 1, 0, 0, 0);
 
+	// Render Trophy
+	PTrophy.bind(commandBuffer);
+	MTrophy.bind(commandBuffer);
+	DSTrophy.bind(commandBuffer, PTrophy, 0, currentImage);
+	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MTrophy.indices.size()), 1, 0, 0, 0);
+
 	// Render Title background
 	PTitles.bind(commandBuffer);
 	MBackground.bind(commandBuffer);
@@ -343,7 +371,7 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 		float passedT = timeManager.getPassedTime();
 
 		tubo.mMat = glm::mat4(5.0f);
-		tubo.mMat = glm::rotate(tubo.mMat, glm::radians(90.0f) * passedT, glm::vec3(0.0f, 0.0f, 1.0f));
+		tubo.mMat = glm::rotate(tubo.mMat, glm::radians(45.0f) * passedT , glm::vec3(0.0f, 0.0f, 1.0f));
 		tubo.mvpMat = TitleViewPrj * tubo.mMat;
 		tubo.nMat = glm::inverse(glm::transpose(tubo.mMat));
 
@@ -356,14 +384,13 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 		uboCar.mMat = glm::translate(glm::mat4(3.0f), glm::vec3(0.0f, -40.0f, 0.0f));
 		uboCar.mMat = glm::rotate(uboCar.mMat, glm::radians(-60.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 		uboCar.mMat = glm::rotate(uboCar.mMat, glm::radians(90.0f) * passedT, glm::vec3(0.0f, 1.0f, 0.0f));
-		
+
 		uboCar.mvpMat = TitleViewPrj * uboCar.mMat;
 		uboCar.nMat = glm::inverse(uboCar.mMat);
 
 		DSCar.map(currentImage, &uboCar, 0);
 		DSCar.map(currentImage, &uboToonParC, 2);
 
-		
 		DSBackground.map(currentImage, &tuboB, 0);
 
 		if (glfwGetKey(window, GLFW_KEY_SPACE))
@@ -379,12 +406,30 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 		float passedT = timeManager.getPassedTime();
 
 		tubo.mMat = glm::mat4(5.0f);
-		tubo.mMat = glm::rotate(tubo.mMat, glm::radians(90.0f) * passedT, glm::vec3(0.0f, 0.0f, 1.0f));
+		tubo.mMat = glm::rotate(tubo.mMat, glm::radians(45.0f) * passedT , glm::vec3(0.0f, 0.0f, 1.0f));
 		tubo.mvpMat = TitleViewPrj * tubo.mMat;
 		tubo.nMat = glm::inverse(glm::transpose(tubo.mMat));
 
 		DSTitle2.map(currentImage, &tubo, 0);
 		DSBackground.map(currentImage, &tuboB, 0);
+
+		TrophyUniformBufferObject uboTrophy{};
+		uboTrophy.mMat = glm::translate(glm::mat4(0.5f), glm::vec3(0.0f, -40.0f, 0.0f));
+		uboTrophy.mMat = glm::rotate(uboTrophy.mMat, glm::radians(30.0f) * passedT , glm::vec3(0.0f, 0.0f, 1.0f));
+		uboTrophy.mvpMat = TitleViewPrj * tubo.mMat;
+		uboTrophy.nMat = glm::inverse(glm::transpose(tubo.mMat));
+		uboTrophy.prize = 0.0f;
+		score = car.getScore();
+		std::cout << "Score: " << score << std::endl;
+		if (score > 0)
+			uboTrophy.prize = 3.0f;
+		if (score > 1)
+			uboTrophy.prize = 2.0f;
+		if (score > 2)
+			uboTrophy.prize = 1.0f;
+
+		if (score > 0)
+			DSTrophy.map(currentImage, &uboTrophy, 0);
 
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE))
 		{
