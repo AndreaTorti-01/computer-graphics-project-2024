@@ -414,9 +414,11 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 		DSBackground.map(currentImage, &tuboB, 0);
 
 		TrophyUniformBufferObject uboTrophy{};
-		uboTrophy.mMat = glm::translate(glm::mat4(0.5f), glm::vec3(0.0f, -40.0f, 0.0f));
+		uboTrophy.mMat = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -30.0f, 0.0f));
+		uboTrophy.mMat = glm::scale(uboTrophy.mMat,glm::vec3(5.0f));
 		uboTrophy.mMat = glm::rotate(uboTrophy.mMat, glm::radians(30.0f) * passedT , glm::vec3(0.0f, 0.0f, 1.0f));
-		uboTrophy.mvpMat = TitleViewPrj * tubo.mMat;
+		uboTrophy.mMat = glm::rotate(uboTrophy.mMat, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		uboTrophy.mvpMat = TitleViewPrj * uboTrophy.mMat;
 		uboTrophy.nMat = glm::inverse(glm::transpose(tubo.mMat));
 		uboTrophy.prize = 0.0f;
 		score = car.getScore();

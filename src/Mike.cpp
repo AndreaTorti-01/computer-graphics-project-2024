@@ -23,8 +23,8 @@ glm::vec3 Mike::generateRandomPosition(const glm::vec3 &carPosition)
 
 Mike::Mike()
 {
-	minRadius = 3.0f;
-	maxRadius = 7.0f;
+	minRadius = 10.0f;
+	maxRadius = 15.0f;
 	rng = std::mt19937(rd());
 	isAboveFloor = false;
 	isDamaged = false;
