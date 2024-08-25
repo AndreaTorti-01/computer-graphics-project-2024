@@ -115,7 +115,6 @@ void Application::localInit()
 	MFence.init(this, &VDGeneric, "models/Fence.obj", OBJ);
 	MBullet.init(this, &VDGeneric, "models/Bullet.obj", OBJ);
 	MUpgrade.init(this, &VDGeneric, "models/Upgrade.obj", OBJ);
-	MBackground.init(this, &VDGeneric, "models/Background.obj", OBJ);
 	MTitle1.init(this, &VDGeneric, "models/Title1.obj", OBJ);
 	MTitle2.init(this, &VDGeneric, "models/Title2.obj", OBJ);
 	MTrophy.init(this, &VDGeneric, "models/Trophy.obj", OBJ);
@@ -128,7 +127,6 @@ void Application::localInit()
 	TCar.init(this, "textures/T_Car.png");
 	TBullet.init(this, "textures/Textures.png");
 	TUpgrade.init(this, "textures/Textures.png");
-	TBackground.init(this, "textures/grass.jpg");
 	TTitle1.init(this, "textures/Textures.png");
 	TTitle2.init(this, "textures/Textures.png");
 	TGrass.init(this, "textures/grass.jpg");
@@ -183,7 +181,6 @@ void Application::pipelinesAndDescriptorSetsInit()
 	DSTitle1.init(this, &DSLTitles, {&TTitle1});
 	DSTitle2.init(this, &DSLTitles, {&TTitle2});
 	DSTrophy.init(this, &DSLTrophy, {&TTrophy1, &TTrophy2, &TTrophy3});
-	DSBackground.init(this, &DSLTitles, {&TBackground});
 	DSGlobal.init(this, &DSLGlobal, {});
 
 	// Initialize text pipelines and descriptor sets
@@ -216,7 +213,6 @@ void Application::pipelinesAndDescriptorSetsCleanup()
 	DSTitle1.cleanup();
 	DSTitle2.cleanup();
 	DSTrophy.cleanup();
-	DSBackground.cleanup();
 	DSGlobal.cleanup();
 
 	txt.pipelinesAndDescriptorSetsCleanup();
@@ -234,7 +230,6 @@ void Application::localCleanup()
 	TUpgrade.cleanup();
 	TTitle1.cleanup();
 	TTitle2.cleanup();
-	TBackground.cleanup();
 	TGrass.cleanup();
 	TFence.cleanup();
 	TTrophy1.cleanup();
@@ -249,7 +244,6 @@ void Application::localCleanup()
 	MUpgrade.cleanup();
 	MTitle1.cleanup();
 	MTitle2.cleanup();
-	MBackground.cleanup();
 	MGrass.cleanup();
 	MFence.cleanup();
 	MTrophy.cleanup();
@@ -345,12 +339,6 @@ void Application::populateCommandBuffer(VkCommandBuffer commandBuffer, int curre
 	DSTrophy.bind(commandBuffer, PTrophy, 0, currentImage);
 	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MTrophy.indices.size()), 1, 0, 0, 0);
 
-	// Render Title background
-	PTitles.bind(commandBuffer);
-	MBackground.bind(commandBuffer);
-	DSBackground.bind(commandBuffer, PTitles, 0, currentImage);
-	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(MBackground.indices.size()), 1, 0, 0, 0);
-
 	// Render SkyBox
 	PSkyBox.bind(commandBuffer);
 	MSkyBox.bind(commandBuffer);
@@ -371,11 +359,16 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 		float passedT = timeManager.getPassedTime();
 
 		tubo.mMat = glm::mat4(5.0f);
-		tubo.mMat = glm::rotate(tubo.mMat, glm::radians(45.0f) * passedT , glm::vec3(0.0f, 0.0f, 1.0f));
+		tubo.mMat = glm::rotate(tubo.mMat, glm::radians(45.0f) * passedT, glm::vec3(0.0f, 0.0f, 1.0f));
 		tubo.mvpMat = TitleViewPrj * tubo.mMat;
 		tubo.nMat = glm::inverse(glm::transpose(tubo.mMat));
 
 		DSTitle1.map(currentImage, &tubo, 0);
+
+		// Update Skybox uniforms
+		SkyBoxUniformBufferObject uboSky{};
+		uboSky.mvpMat = glm::scale(TitleViewPrj, glm::vec3(50.0f)); // Remove translation from view matrix
+		DSSkyBox.map(currentImage, &uboSky, 0);
 
 		ToonUniformBufferObject uboCar{};
 		ToonParUniformBufferObject uboToonParC{};
@@ -391,7 +384,21 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 		DSCar.map(currentImage, &uboCar, 0);
 		DSCar.map(currentImage, &uboToonParC, 2);
 
-		DSBackground.map(currentImage, &tuboB, 0);
+		GlobalUniformBufferObject uboGlobal;
+		uboGlobal.eyePos = defaultEyePos;
+		uboGlobal.lightColor[0].v = glm::vec4(1.0f);
+		uboGlobal.lightPos[0].v = glm::vec3(0.0f);
+		uboGlobal.lightDir[0].v = glm::vec3(0.0f, -1.0f, 0.0f);
+		uboGlobal.type[0].t = 0.0f;
+
+		for (int i = 0; i < NLIGHTS - 1; i++)
+		{
+			uboGlobal.lightDir[i + 1].v = glm::vec3(0.0f);
+			uboGlobal.lightPos[i + 1].v = glm::vec3(0.0f);
+			uboGlobal.lightColor[i + 1].v = glm::vec4(0.0f);
+			uboGlobal.type[i + 1].t = 1.0f;
+		}
+		DSGlobal.map(currentImage, &uboGlobal, 0);
 
 		if (glfwGetKey(window, GLFW_KEY_SPACE))
 		{
@@ -406,17 +413,21 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 		float passedT = timeManager.getPassedTime();
 
 		tubo.mMat = glm::mat4(5.0f);
-		tubo.mMat = glm::rotate(tubo.mMat, glm::radians(45.0f) * passedT , glm::vec3(0.0f, 0.0f, 1.0f));
+		tubo.mMat = glm::rotate(tubo.mMat, glm::radians(45.0f) * passedT, glm::vec3(0.0f, 0.0f, 1.0f));
 		tubo.mvpMat = TitleViewPrj * tubo.mMat;
 		tubo.nMat = glm::inverse(glm::transpose(tubo.mMat));
 
 		DSTitle2.map(currentImage, &tubo, 0);
-		DSBackground.map(currentImage, &tuboB, 0);
+
+		// Update Skybox uniforms
+		SkyBoxUniformBufferObject uboSky{};
+		uboSky.mvpMat = TitleViewPrj; // Remove translation from view matrix
+		DSSkyBox.map(currentImage, &uboSky, 0);
 
 		TrophyUniformBufferObject uboTrophy{};
 		uboTrophy.mMat = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -30.0f, 0.0f));
-		uboTrophy.mMat = glm::scale(uboTrophy.mMat,glm::vec3(5.0f));
-		uboTrophy.mMat = glm::rotate(uboTrophy.mMat, glm::radians(30.0f) * passedT , glm::vec3(0.0f, 0.0f, 1.0f));
+		uboTrophy.mMat = glm::scale(uboTrophy.mMat, glm::vec3(5.0f));
+		uboTrophy.mMat = glm::rotate(uboTrophy.mMat, glm::radians(30.0f) * passedT, glm::vec3(0.0f, 0.0f, 1.0f));
 		uboTrophy.mMat = glm::rotate(uboTrophy.mMat, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 		uboTrophy.mvpMat = TitleViewPrj * uboTrophy.mMat;
 		uboTrophy.nMat = glm::inverse(glm::transpose(tubo.mMat));
@@ -618,15 +629,11 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 
 void Application::initConstantUbos()
 {
-	ViewMatrix = glm::lookAt(glm::vec3(0.0f, 15.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	ViewMatrix = glm::lookAt(defaultEyePos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	float fov = glm::radians(45.0f);
 	glm::mat4 M = glm::perspective(fov, Ar, 0.1f, 500.0f);
 	M[1][1] *= -1; // Flip Y-axis for Vulkan coordinate
 	TitleViewPrj = M * ViewMatrix;
-
-	tuboB.mMat = glm::translate(glm::scale(glm::mat4(1.0f), glm::vec3(100.0f, 50.0f, 50.0f)), glm::vec3(0.0f, -6.0f, 0.0f));
-	tuboB.mvpMat = TitleViewPrj * tuboB.mMat;
-	tuboB.nMat = glm::inverse(glm::transpose(tuboB.mMat));
 }
 
 glm::vec3 generateRandomPosition(Car car, const float minRadius, const float maxRadius, std::mt19937 &rng, const float floorDiam)

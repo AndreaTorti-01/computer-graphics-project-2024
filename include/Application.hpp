@@ -30,11 +30,11 @@ protected:
 	TextMaker txt;
 
 	// Models and textures
-	Model MCar, MMike, MSkyBox, MFloor, MBullet, MGrass, MFence, MUpgrade, MTitle1, MTitle2, MBackground, MTrophy;
-	Texture TGeneric, TMike, TSkyBox, TFloor, TCar, TBullet, TGrass, TFence, TUpgrade, TTitle1, TTitle2, TBackground, TTrophy1, TTrophy2, TTrophy3;
+	Model MCar, MMike, MSkyBox, MFloor, MBullet, MGrass, MFence, MUpgrade, MTitle1, MTitle2, MTrophy;
+	Texture TGeneric, TMike, TSkyBox, TFloor, TCar, TBullet, TGrass, TFence, TUpgrade, TTitle1, TTitle2, TTrophy1, TTrophy2, TTrophy3;
 
 	// Descriptor Sets
-	DescriptorSet DSGlobal, DSCar, DSSkyBox, DSFloor, DSGrass, DSFence, DSMikes, DSTitle1, DSTitle2, DSBackground, DSTrophy;
+	DescriptorSet DSGlobal, DSCar, DSSkyBox, DSFloor, DSGrass, DSFence, DSMikes, DSTitle1, DSTitle2, DSTrophy;
 	std::vector<DescriptorSet> DSBullets;
 	std::vector<DescriptorSet> DSUpgrades;
 
@@ -50,6 +50,7 @@ protected:
 	float Ar; // Aspect ratio
 	glm::mat4 ViewMatrix;
 	glm::mat4 TitleViewPrj;
+	const glm::vec3 defaultEyePos = glm::vec3(0.0f, 15.0f, 5.0f);
 
 	bool isIsometricView = false;
 
