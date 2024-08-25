@@ -392,11 +392,10 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 
 void Application::initConstantUbos()
 {
-	ViewMatrix = glm::lookAt(defaultEyePos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	float fov = glm::radians(45.0f);
 	glm::mat4 M = glm::perspective(fov, Ar, 0.1f, 500.0f);
 	M[1][1] *= -1; // Flip Y-axis for Vulkan coordinate
-	TitleViewPrj = M * ViewMatrix;
+	TitleViewPrj = M * glm::lookAt(defaultEyePos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 }
 
 void Application::setScene0(uint32_t currentImage)
