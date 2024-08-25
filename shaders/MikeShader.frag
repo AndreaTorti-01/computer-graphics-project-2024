@@ -6,7 +6,7 @@
 layout(location = 0) in vec3 fragPos;
 layout(location = 1) in vec3 fragNorm;
 layout(location = 2) in vec2 fragUV;
-layout(location = 3) in float showDamage;
+layout(location = 3) in float fragDamage;
 
 // This defines the color computed by this shader. Generally is always location
 // 0.
@@ -16,12 +16,12 @@ layout(location = 0) out vec4 outColor;
 // Set 0 The texture of Set 1 (binding 1), and the Material parameters (Set 1,
 // binding 2) are used. Note that each definition must match the one used in the
 // CPP code
-layout(set = 0, binding = 0) uniform BlinnUniformBufferObject {
+layout(set = 0, binding = 0) uniform GlobalUniformBufferObject {
   vec3 lightDir[16];
   vec3 lightPos[16];
   vec4 lightColor[16];
   vec3 eyePos;
-  int type[16];
+  float type[16];
 }
 gubo;
 
@@ -88,5 +88,5 @@ void main() {
           BRDF(EyeDir, Norm, gubo.lightDir[i], Albedo) * gubo.lightColor[i].rgb;
   }
 
-  outColor = vec4(col + Ambient + showDamage * vec3(0.8, 0.0, 0.0), 1.0f);
+  outColor = vec4(col + Ambient + fragDamage * vec3(0.8, 0.0, 0.0), 1.0f);
 }

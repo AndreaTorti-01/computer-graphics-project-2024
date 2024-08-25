@@ -110,4 +110,8 @@ protected:
 	void check_collisions_MB(std::array<Mike, MAX_MIKE_INSTANCES> &mikes, std::array<Bullet, MAX_BULLET_INSTANCES> &bullets);
 
 	void check_collisions_MC(std::array<Mike, MAX_MIKE_INSTANCES> &mikes, Car &car);
+
+	void setScene0(uint32_t currentImage);
+	void setScene1(uint32_t currentImage);
+	void setScene2(uint32_t currentImage);
 };

@@ -13,7 +13,7 @@ layout(location = 2) in vec2 inUV;
 layout(location = 0) out vec3 fragPos;
 layout(location = 1) out vec3 fragNorm;
 layout(location = 2) out vec2 fragUV;
-layout(location = 3) out float showDamage;
+layout(location = 3) out float fragDamage;
 
 // Here the Uniform buffers are defined. In this case, the Transform matrices (Set 1, binding 0)
 // are used. Note that the definition must match the one used in the CPP code
@@ -36,5 +36,5 @@ void main() {
 	fragPos = (ubo.mMat[i] * vec4(inPosition, 1.0)).xyz;
 	fragNorm = (ubo.nMat[i] * vec4(inNorm, 0.0)).xyz;
 	fragUV = inUV;
-	showDamage = ubo.showDamage[i];
+	fragDamage = ubo.showDamage[i];
 }

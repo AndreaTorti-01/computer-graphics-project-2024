@@ -18,11 +18,21 @@ layout(location = 0) out vec4 outColor;
 
 layout(set = 0, binding = 1) uniform sampler2D texSampler;
 
-
 // The main shader, implementing a simple Global + Lambert + constant Ambient
 // BRDF model The scene is lit by a single Spot Light
 void main() {
   vec3 Norm = normalize(fragNorm);
   vec3 Albedo = texture(texSampler, fragUV).rgb;
-  outColor = vec4(Albedo, 1.0);
+  const vec3 cxp = vec3(0.7, 0.7, 0.7) * 0.5;
+  const vec3 cxn = vec3(0.2, 0.2, 0.2) * 0.2;
+  const vec3 cyp = vec3(0.7, 0.7, 0.7) * 0.5;
+  const vec3 cyn = vec3(0.2, 0.2, 0.2) * 0.2;
+  const vec3 czp = vec3(0.7, 0.7, 0.7) * 0.5;
+  const vec3 czn = vec3(0.2, 0.2, 0.2) * 0.2;
+
+  vec3 Ambient = ((Norm.x > 0 ? cxp : cxn) * (Norm.x * Norm.x) +
+                  (Norm.y > 0 ? cyp : cyn) * (Norm.y * Norm.y) +
+                  (Norm.z > 0 ? czp : czn) * (Norm.z * Norm.z)) *
+                 Albedo;
+  outColor = vec4(Albedo + Ambient, 1.0);
 }

@@ -26,6 +26,8 @@ layout(set = 0, binding = 3) uniform sampler2D texThird;
 void main() {
   vec3 Norm = normalize(fragNorm);
   vec3 Albedo;
+
+  
   switch (int(prize)) {
   case 1:
     Albedo = texture(texFirst, fragUV).rgb;
@@ -37,5 +39,18 @@ void main() {
     Albedo = texture(texThird, fragUV).rgb;
     break;
   }
-  outColor = vec4(Albedo, 1.0);
+
+  const vec3 cxp = vec3(0.7, 0.7, 0.7) * 0.5;
+  const vec3 cxn = vec3(0.2, 0.2, 0.2) * 0.5;
+  const vec3 cyp = vec3(0.7, 0.7, 0.7) * 0.5;
+  const vec3 cyn = vec3(0.2, 0.2, 0.2) * 0.5;
+  const vec3 czp = vec3(0.7, 0.7, 0.7) * 0.5;
+  const vec3 czn = vec3(0.2, 0.2, 0.2) * 0.5;
+
+  vec3 Ambient = ((Norm.x > 0 ? cxp : cxn) * (Norm.x * Norm.x) +
+                  (Norm.y > 0 ? cyp : cyn) * (Norm.y * Norm.y) +
+                  (Norm.z > 0 ? czp : czn) * (Norm.z * Norm.z)) *
+                 Albedo;
+
+  outColor = vec4(Albedo + Ambient, 1.0);
 }

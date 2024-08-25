@@ -34,8 +34,8 @@ Mike::Mike()
 	speed = 2.0f;
 }
 
-void Mike::setDamaged(bool damaged) { this->isDamaged = damaged; }
-bool Mike::getDamaged() { return  this->isDamaged; }
+void Mike::setDamaged(bool damaged) { isDamaged = damaged; }
+bool Mike::getDamaged() { return  isDamaged; }
 void Mike::setDamageTimer(float timer) { damageTimer = timer; }
 void Mike::multiplySpeed(float multiplier) { if(speed * multiplier <= 9.0f ) speed *= multiplier; }
 void Mike::reset()
