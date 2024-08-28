@@ -44,13 +44,13 @@ protected:
 	int health = 10;
 
 	// Camera parameters
-	glm::vec3 CamPos = glm::vec3(0.0, 1.5, 7.0);
+	glm::vec3 CamPos = glm::vec3(0.0, 1.5, 7.0); // scene 1
 	float CamAlpha = 0.0f;
 	float CamBeta = 0.0f;
 	float Ar; // Aspect ratio
 	glm::mat4 ViewMatrix;
 	glm::mat4 TitleViewPrj;
-	const glm::vec3 defaultEyePos = glm::vec3(0.0f, 15.0f, 5.0f);
+	const glm::vec3 defaultEyePos = glm::vec3(0.0f, 15.0f, 5.0f); // scene 0 and 2
 
 	bool isIsometricView = false;
 
