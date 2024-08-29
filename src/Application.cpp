@@ -122,8 +122,8 @@ void Application::localInit()
 	// Initialize Textures
 	TGeneric.init(this, "textures/Textures.png");
 	TMike.init(this, "textures/T_Mike.png");
-	TSkyBox.init(this, "textures/T_SkyBox.jpg");
-	TFloor.init(this, "textures/TCom_Pavement_TerracottaAntique_2K_albedo.jpg");
+	TSkyBox.init(this, "textures/T_SkyBox.png");
+	TFloor.init(this, "textures/T_Floor.jpg");
 	TCar.init(this, "textures/T_Car.png");
 	TBullet.init(this, "textures/Textures.png");
 	TUpgrade.init(this, "textures/Textures.png");
@@ -149,6 +149,7 @@ void Application::localInit()
 	initConstantUbos();
 	// Initialize matrices
 	ViewMatrix = glm::translate(glm::mat4(1), -CamPos);
+	cameraType = 0;
 }
 
 // Initialize pipelines and descriptor sets
@@ -504,18 +505,37 @@ void Application::setScene1(uint32_t currentImage)
 	}
 	if (glfwGetKey(window, GLFW_KEY_SPACE))
 	{
-		if (timeManager.canChangeView()) isIsometricView = !isIsometricView;
+		if (timeManager.canChangeView())
+			cameraType = (cameraType + 1) % 3;
 		glfwWaitEventsTimeout(0.2);
 	}
-
+	glm::vec3 cameraOffset;
 	// Camera position (static relative to the car)
-	glm::vec3 cameraOffset = glm::vec3(5.0f, 20.0f, 5.0f);
-	if (isIsometricView)
+	switch (cameraType)
+	{
+	case 0:
+		cameraOffset = glm::vec3(5.0f, 20.0f, 5.0f);
+		break;
+	case 1:
 		cameraOffset = glm::vec3(15.0f, 20.0f, 15.0f);
-	glm::vec3 cameraPosition = car.getPosition() + cameraOffset;
+		break;
+	default: cameraOffset = glm::vec3(15.0f, 20.0f, 15.0f);
+	}
 
-	// Look at the car
-	ViewMatrix = glm::lookAt(cameraPosition, car.getPosition(), glm::vec3(0.0f, 1.0f, 0.0f));
+	if (cameraType < 2)
+	{
+		glm::vec3 cameraPosition = car.getPosition() + cameraOffset;
+		// Look at the car
+		ViewMatrix = glm::lookAt(cameraPosition, car.getPosition(), glm::vec3(0.0f, 1.0f, 0.0f));
+	}
+	else
+	{
+		ViewMatrix =
+			glm::rotate(glm::mat4(1.0), -glm::radians(-5.0f), glm::vec3(1, 0, 0)) *
+			glm::rotate(glm::mat4(1.0), car.getRotation() + glm::radians(-90.0f), glm::vec3(0, 1, 0)) *
+			glm::translate(glm::mat4(1.0), -car.getPosition()) *
+			glm::translate(glm::mat4(1.0), glm::vec3(-0.0f, -0.8f, -0.0f));
+	}
 
 	// Projection matrix with FOV adjustment based on speed
 	float fov = glm::radians(30.0f + std::abs(car.getSpeed()) * 0.75f);
