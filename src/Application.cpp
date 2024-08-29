@@ -572,7 +572,7 @@ void Application::setScene1(uint32_t currentImage)
 		uboMike.mMat[i] = glm::scale(uboMike.mMat[i], glm::vec3(0.5f));
 		uboMike.mvpMat[i] = ViewPrj * uboMike.mMat[i];
 		uboMike.nMat[i] = glm::inverse(glm::transpose(uboMike.mMat[i]));
-		uboMike.showDamage[i] = 0.0f;
+		uboMike.showDamage[i] = 1.0f;
 		// if (mikes[i].getDamaged()) uboMike.showDamage[i] = 1.0f;
 	}
 	DSMikes.map(currentImage, &uboMike, 0);
