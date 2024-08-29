@@ -371,11 +371,6 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 			glfwSetWindowShouldClose(window, 1);
 			return;
 		}
-		if (glfwGetKey(window, GLFW_KEY_SPACE))
-		{
-			isIsometricView = !isIsometricView;
-			glfwWaitEventsTimeout(0.2);
-		}
 		return;
 	}
 	if (currScene == 2)
@@ -505,6 +500,12 @@ void Application::setScene1(uint32_t currentImage)
 	{
 		RebuildPipeline();
 		currScene = 2;
+		return;
+	}
+	if (glfwGetKey(window, GLFW_KEY_SPACE))
+	{
+		if (timeManager.canChangeView()) isIsometricView = !isIsometricView;
+		glfwWaitEventsTimeout(0.2);
 	}
 
 	// Camera position (static relative to the car)

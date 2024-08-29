@@ -52,6 +52,7 @@ protected:
 	glm::mat4 TitleViewPrj;
 	const glm::vec3 defaultEyePos = glm::vec3(0.0f, 15.0f, 5.0f);
 
+
 	bool isIsometricView = false;
 
 	// Car position matrix

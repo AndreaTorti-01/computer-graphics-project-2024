@@ -11,6 +11,7 @@ TimeManager::TimeManager()
     mikeSpawnCooldown = 2.0f;
     upgradeSpawnTimer = 0.0f;
     upgradeSpawnCooldown = 2.0f;
+    lastViewChange = std::chrono::steady_clock::now();
     startOfProgram = std::chrono::steady_clock::now();
     lastAccelleration = std::chrono::steady_clock::now();
 }
@@ -31,6 +32,16 @@ float TimeManager::getPassedTime()
 float TimeManager::getDeltaTime() const
 {
     return deltaTime;
+}
+
+bool TimeManager::canChangeView()
+{
+    auto currentTime = std::chrono::steady_clock::now();
+    if (std::chrono::duration<float>(currentTime - lastViewChange).count() > 0.5) {
+        lastViewChange = currentTime;
+        return true;
+    }
+    return false;
 }
 
 void TimeManager::updateTimers(Car car, std::array<Mike, MAX_MIKE_INSTANCES> &mikes, std::array<Upgrade, MAX_UPGRADE_INSTANCES> &upgrades)
