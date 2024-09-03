@@ -54,7 +54,14 @@ vec3 BRDF(vec3 V, vec3 N, vec3 L, vec3 Md) {
   else
     Diffuse = Md;
 
-    vec3 Specular = vec3(pow(clamp(dot(V, -reflect(L, N)),0.0,1.0), 200.0f)); 
+  
+	vec3 Specular = vec3(pow(clamp(dot(V, -reflect(L, N)),0.0,1.0), 200.0f)); 
+  vec3 Ms = vec3(1.0);
+  index = clamp(dot(V, -reflect(L, N)),0.0,1.0);
+
+  if (index <= 0.95) Specular = vec3(0.0);
+  else if (index > 0.95) Specular = Ms * ((index - 0.95) * 20);
+  else Specular = Ms;
 
   return (Diffuse + Specular);
 }
