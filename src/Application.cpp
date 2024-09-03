@@ -85,8 +85,8 @@ void Application::localInit()
 
 	DSLTrophy.init(this, {{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(TrophyUniformBufferObject), 1},
 						  {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1},
-						  {2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 1, 1},
-						  {3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 2, 1}});
+						  {2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1},
+						  {3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1}});
 
 	DSLSkyBox.init(this, {{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, sizeof(SkyBoxUniformBufferObject), 1},
 						  {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1}});
@@ -107,7 +107,7 @@ void Application::localInit()
 	PSkyBox.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, false);
 
 	// Create Models
-	MCar.init(this, &VDGeneric, "models/Car.obj", OBJ);
+	MCar.init(this, &VDGeneric, "models/CarHighPoly.obj", OBJ);
 	MMike.init(this, &VDGeneric, "models/Mike.mgcg", MGCG);
 	MSkyBox.init(this, &VDSkyBox, "models/SkyBox.obj", OBJ);
 	MFloor.init(this, &VDGeneric, "models/squarefloor128.obj", OBJ);
@@ -391,7 +391,8 @@ void Application::initConstantUbos()
 	float fov = glm::radians(45.0f);
 	glm::mat4 M = glm::perspective(fov, Ar, 0.1f, 500.0f);
 	M[1][1] *= -1; // Flip Y-axis for Vulkan coordinate
-	TitleViewPrj = M * glm::lookAt(defaultEyePos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	TitleViewMatrix = glm::lookAt(defaultEyePos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	TitleViewPrj = M * TitleViewMatrix;
 }
 
 void Application::setScene0(uint32_t currentImage)
@@ -408,6 +409,7 @@ void Application::setScene0(uint32_t currentImage)
 	// Update Skybox uniforms
 	SkyBoxUniformBufferObject uboSky{};
 	uboSky.mvpMat = glm::scale(TitleViewPrj, glm::vec3(50.0f)); // Remove translation from view matrix
+	uboSky.mvpMat = glm::rotate(uboSky.mvpMat, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 	DSSkyBox.map(currentImage, &uboSky, 0);
 
 	ToonUniformBufferObject uboCar{};
@@ -424,10 +426,10 @@ void Application::setScene0(uint32_t currentImage)
 	DSCar.map(currentImage, &uboToonParC, 2);
 
 	GlobalUniformBufferObject uboGlobal;
-	uboGlobal.eyePos = defaultEyePos;
-	uboGlobal.lightColor[0].v = glm::vec4(1.0f);
+	uboGlobal.eyePos = glm::vec3(glm::inverse(TitleViewMatrix) * glm::vec4(0, 0, 0, 1));
+	uboGlobal.lightColor[0].v = glm::vec4(0.5f);
 	uboGlobal.lightPos[0].v = glm::vec3(0.0f);
-	uboGlobal.lightDir[0].v = glm::vec3(0.0f, -1.0f, 0.0f);
+	uboGlobal.lightDir[0].v = glm::vec3(0.0f, 1.0f, 0.0f);
 	uboGlobal.type[0].t = 0.0f;
 
 	for (int i = 0; i < NLIGHTS - 1; i++)
@@ -455,6 +457,7 @@ void Application::setScene2(uint32_t currentImage)
 	// Update Skybox uniforms
 	SkyBoxUniformBufferObject uboSky{};
 	uboSky.mvpMat = glm::scale(TitleViewPrj, glm::vec3(50.0f)); // Remove translation from view matrix
+	uboSky.mvpMat = glm::rotate(uboSky.mvpMat, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 	DSSkyBox.map(currentImage, &uboSky, 0);
 
 	TrophyUniformBufferObject uboTrophy{};
@@ -566,7 +569,6 @@ void Application::setScene1(uint32_t currentImage)
 	for (int i = 0; i < NLIGHTS - 1; i++)
 	{
 		uboGlobal.lightDir[i + 1].v = glm::vec3(0.0f, 0.0f, 0.0f);
-
 		uboGlobal.lightPos[i + 1].v = mikes[i].getPosition() + glm::vec3(0.0f, 1.0f, 0.0f);
 		uboGlobal.lightColor[i + 1].v = glm::vec4(0.8f);
 		uboGlobal.type[i + 1].t = 1.0f;
@@ -592,7 +594,7 @@ void Application::setScene1(uint32_t currentImage)
 		uboMike.mMat[i] = glm::scale(uboMike.mMat[i], glm::vec3(0.5f));
 		uboMike.mvpMat[i] = ViewPrj * uboMike.mMat[i];
 		uboMike.nMat[i] = glm::inverse(glm::transpose(uboMike.mMat[i]));
-		uboMike.showDamage[i] = 1.0f;
+		uboMike.showDamage[i] = 0.0f;
 		// if (mikes[i].getDamaged()) uboMike.showDamage[i] = 1.0f;
 	}
 	DSMikes.map(currentImage, &uboMike, 0);

@@ -54,7 +54,9 @@ vec3 BRDF(vec3 V, vec3 N, vec3 L, vec3 Md) {
   else
     Diffuse = Md;
 
-  return (Diffuse);
+    vec3 Specular = vec3(pow(clamp(dot(V, -reflect(L, N)),0.0,1.0), 200.0f)); 
+
+  return (Diffuse + Specular);
 }
 
 // The main shader, implementing a simple Globconst int NMIKE=15;al + Lambert + constant Ambient
