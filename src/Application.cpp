@@ -7,7 +7,7 @@ void Application::setWindowParameters()
 	windowHeight = 720;
 	windowTitle = "CG Project";
 	windowResizable = GLFW_TRUE;
-	initialBackgroundColor = {0.1f, 0.1f, 0.1f, 1.0f};
+	initialBackgroundColor = { 0.1f, 0.1f, 0.1f, 1.0f };
 	Ar = static_cast<float>(windowWidth) / static_cast<float>(windowHeight);
 }
 
@@ -72,38 +72,38 @@ void Application::localInit()
 	Ar = static_cast<float>(windowWidth) / static_cast<float>(windowHeight);
 
 	// Initialize Descriptor Set Layouts
-	DSLGlobal.init(this, {{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(GlobalUniformBufferObject), 1}});
+	DSLGlobal.init(this, { {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(GlobalUniformBufferObject), 1} });
 
-	DSLToon.init(this, {{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(ToonUniformBufferObject), 1},
+	DSLToon.init(this, { {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(ToonUniformBufferObject), 1},
 						{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1},
 						{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(ToonParUniformBufferObject), 1},
-						{3, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(GlobalUniformBufferObject), 1}});
+						{3, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(GlobalUniformBufferObject), 1} });
 
-	DSLMike.init(this, {{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(MikeUniformBufferObject), 1},
+	DSLMike.init(this, { {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(MikeUniformBufferObject), 1},
 						{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1},
-						{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(GlobalUniformBufferObject), 1}});
+						{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(GlobalUniformBufferObject), 1} });
 
-	DSLTrophy.init(this, {{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(TrophyUniformBufferObject), 1},
+	DSLTrophy.init(this, { {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(TrophyUniformBufferObject), 1},
 						  {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1},
 						  {2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1},
-						  {3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1}});
+						  {3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1} });
 
-	DSLSkyBox.init(this, {{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, sizeof(SkyBoxUniformBufferObject), 1},
-						  {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1}});
+	DSLSkyBox.init(this, { {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, sizeof(SkyBoxUniformBufferObject), 1},
+						  {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1} });
 
-	DSLTitles.init(this, {{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(ToonUniformBufferObject), 1},
-						  {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1}});
+	DSLTitles.init(this, { {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(ToonUniformBufferObject), 1},
+						  {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 1} });
 
 	// Initialize Vertex Descriptors
-	VDGeneric.init(this, {{0, sizeof(GenericVertex), VK_VERTEX_INPUT_RATE_VERTEX}}, {{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(GenericVertex, pos), sizeof(glm::vec3), POSITION}, {0, 1, VK_FORMAT_R32G32B32_SFLOAT, offsetof(GenericVertex, norm), sizeof(glm::vec3), NORMAL}, {0, 2, VK_FORMAT_R32G32_SFLOAT, offsetof(GenericVertex, UV), sizeof(glm::vec2), UV}});
-	VDSkyBox.init(this, {{0, sizeof(SkyBoxVertex), VK_VERTEX_INPUT_RATE_VERTEX}}, {{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(SkyBoxVertex, pos), sizeof(glm::vec3), POSITION}});
+	VDGeneric.init(this, { {0, sizeof(GenericVertex), VK_VERTEX_INPUT_RATE_VERTEX} }, { {0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(GenericVertex, pos), sizeof(glm::vec3), POSITION}, {0, 1, VK_FORMAT_R32G32B32_SFLOAT, offsetof(GenericVertex, norm), sizeof(glm::vec3), NORMAL}, {0, 2, VK_FORMAT_R32G32_SFLOAT, offsetof(GenericVertex, UV), sizeof(glm::vec2), UV} });
+	VDSkyBox.init(this, { {0, sizeof(SkyBoxVertex), VK_VERTEX_INPUT_RATE_VERTEX} }, { {0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(SkyBoxVertex, pos), sizeof(glm::vec3), POSITION} });
 
 	// Pipelines [Shader couples]
-	PToon.init(this, &VDGeneric, "shaders/Vert.spv", "shaders/ToonFrag.spv", {&DSLGlobal, &DSLToon});
-	PMike.init(this, &VDGeneric, "shaders/MikeVert.spv", "shaders/MikeFrag.spv", {&DSLGlobal, &DSLMike});
-	PTitles.init(this, &VDGeneric, "shaders/TitleVert.spv", "shaders/TitleFrag.spv", {&DSLTitles});
-	PTrophy.init(this, &VDGeneric, "shaders/TrophyVert.spv", "shaders/TrophyFrag.spv", {&DSLTrophy});
-	PSkyBox.init(this, &VDSkyBox, "shaders/SkyBoxVert.spv", "shaders/SkyBoxFrag.spv", {&DSLSkyBox});
+	PToon.init(this, &VDGeneric, "shaders/Vert.spv", "shaders/ToonFrag.spv", { &DSLGlobal, &DSLToon });
+	PMike.init(this, &VDGeneric, "shaders/MikeVert.spv", "shaders/MikeFrag.spv", { &DSLGlobal, &DSLMike });
+	PTitles.init(this, &VDGeneric, "shaders/TitleVert.spv", "shaders/TitleFrag.spv", { &DSLTitles });
+	PTrophy.init(this, &VDGeneric, "shaders/TrophyVert.spv", "shaders/TrophyFrag.spv", { &DSLTrophy });
+	PSkyBox.init(this, &VDSkyBox, "shaders/SkyBoxVert.spv", "shaders/SkyBoxFrag.spv", { &DSLSkyBox });
 	PSkyBox.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, false);
 
 	// Create Models
@@ -140,9 +140,9 @@ void Application::localInit()
 	// Initialize text
 	outText.resize(3);
 	outText = {
-		{3, {"Press SPACE to start", " ", "", ""}, 0, 0},
+		{3, {"Press SPACE to start", "", "", ""}, 0, 0},
 		{2, {"Evade the mikes", "And kill em all", "", ""}, 0, 0},
-		{1, {"press ESC to close", "", "", ""}, 0, 0}};
+		{1, {"press ESC to close", "", "", ""}, 0, 0} };
 	txt.init(this, &outText);
 
 	// Initialize Ubos
@@ -163,25 +163,25 @@ void Application::pipelinesAndDescriptorSetsInit()
 	PTrophy.create();
 
 	// Initialize descriptor sets
-	DSCar.init(this, &DSLToon, {&TCar});
-	DSMikes.init(this, &DSLMike, {&TGeneric});
+	DSCar.init(this, &DSLToon, { &TCar });
+	DSMikes.init(this, &DSLMike, { &TGeneric });
 	DSBullets.resize(MAX_BULLET_INSTANCES);
 	for (int i = 0; i < MAX_BULLET_INSTANCES; ++i)
 	{
-		DSBullets[i].init(this, &DSLToon, {&TBullet});
+		DSBullets[i].init(this, &DSLToon, { &TBullet });
 	}
 	DSUpgrades.resize(MAX_UPGRADE_INSTANCES);
 	for (int i = 0; i < MAX_UPGRADE_INSTANCES; ++i)
 	{
-		DSUpgrades[i].init(this, &DSLToon, {&TUpgrade});
+		DSUpgrades[i].init(this, &DSLToon, { &TUpgrade });
 	}
-	DSFloor.init(this, &DSLToon, {&TFloor});
-	DSGrass.init(this, &DSLToon, {&TGrass});
-	DSFence.init(this, &DSLToon, {&TFence});
-	DSSkyBox.init(this, &DSLSkyBox, {&TSkyBox});
-	DSTitle1.init(this, &DSLTitles, {&TTitle1});
-	DSTitle2.init(this, &DSLTitles, {&TTitle2});
-	DSTrophy.init(this, &DSLTrophy, {&TTrophy1, &TTrophy2, &TTrophy3});
+	DSFloor.init(this, &DSLToon, { &TFloor });
+	DSGrass.init(this, &DSLToon, { &TGrass });
+	DSFence.init(this, &DSLToon, { &TFence });
+	DSSkyBox.init(this, &DSLSkyBox, { &TSkyBox });
+	DSTitle1.init(this, &DSLTitles, { &TTitle1 });
+	DSTitle2.init(this, &DSLTitles, { &TTitle2 });
+	DSTrophy.init(this, &DSLTrophy, { &TTrophy1, &TTrophy2, &TTrophy3 });
 	DSGlobal.init(this, &DSLGlobal, {});
 
 	// Initialize text pipelines and descriptor sets
@@ -199,11 +199,11 @@ void Application::pipelinesAndDescriptorSetsCleanup()
 
 	DSCar.cleanup();
 	DSMikes.cleanup();
-	for (auto &ds : DSBullets)
+	for (auto& ds : DSBullets)
 	{
 		ds.cleanup();
 	}
-	for (auto &ds : DSUpgrades)
+	for (auto& ds : DSUpgrades)
 	{
 		ds.cleanup();
 	}
@@ -494,9 +494,9 @@ void Application::setScene1(uint32_t currentImage)
 	getSixAxis(deltaT, m, r, fire);
 
 	car.update(deltaT, m);
-	for (auto &up : upgrades)
+	for (auto& up : upgrades)
 		up.update(deltaT);
-	for (auto &mike : mikes)
+	for (auto& mike : mikes)
 		mike.update(deltaT, car.getPosition());
 
 	car.check_collisions(mikes, upgrades);
@@ -552,9 +552,9 @@ void Application::setScene1(uint32_t currentImage)
 	{
 		float shakeAmount = 0.004f * (std::abs(car.getSpeed()) - 0.9f * MAX_SPEED) / (0.1f * MAX_SPEED);
 		ViewPrj = glm::translate(ViewPrj, glm::vec3(
-											  0.0f,
-											  shakeAmount * (std::sin(deltaT * 50.0f) + std::cos(deltaT * 47.0f)),
-											  shakeAmount * (std::cos(deltaT * 53.0f) + std::sin(deltaT * 59.0f))));
+			0.0f,
+			shakeAmount * (std::sin(deltaT * 50.0f) + std::cos(deltaT * 47.0f)),
+			shakeAmount * (std::cos(deltaT * 53.0f) + std::sin(deltaT * 59.0f))));
 	}
 
 	// Update global uniforms
@@ -594,8 +594,8 @@ void Application::setScene1(uint32_t currentImage)
 		uboMike.mMat[i] = glm::scale(uboMike.mMat[i], glm::vec3(0.5f));
 		uboMike.mvpMat[i] = ViewPrj * uboMike.mMat[i];
 		uboMike.nMat[i] = glm::inverse(glm::transpose(uboMike.mMat[i]));
-		uboMike.showDamage[i] = 0.0f;
-		if (mikes[i].getDamaged()) uboMike.showDamage[i] = 1.0f;
+		uboMike.showDamage[i] = 0;
+		// uboMike.showDamage[i] = mikes[i].getDamaged() ? 1 : 0; TODO fix
 	}
 	DSMikes.map(currentImage, &uboMike, 0);
 
@@ -663,4 +663,12 @@ void Application::setScene1(uint32_t currentImage)
 	SkyBoxUniformBufferObject uboSky{};
 	uboSky.mvpMat = M * glm::mat4(glm::mat3(ViewMatrix)); // Remove translation from view matrix
 	DSSkyBox.map(currentImage, &uboSky, 0);
+
+	// update text to show number of lives left
+	std::string text2 = "Lives: " + std::to_string(car.getHealth()) + " Score: " + std::to_string(car.getScore());
+	outText = {
+	{1, {"Press SPACE to start", "", "", ""}, 0, 0},
+	{2, {text2.c_str(), "", "", ""}, 0, 0},
+	{3, {"press ESC to close", "", "", ""}, 0, 0} };
+	// TODO fix does not update
 }

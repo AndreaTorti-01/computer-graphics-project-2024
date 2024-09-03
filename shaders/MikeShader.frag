@@ -6,7 +6,7 @@
 layout(location = 0) in vec3 fragPos;
 layout(location = 1) in vec3 fragNorm;
 layout(location = 2) in vec2 fragUV;
-layout(location = 3) in float fragDamage;
+layout(location = 3) in flat int fragDamage;
 
 // This defines the color computed by this shader. Generally is always location
 // 0.

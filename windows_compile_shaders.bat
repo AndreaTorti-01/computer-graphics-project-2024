@@ -1,4 +1,4 @@
-:: use .\computer-graphics-project-2024\windows_compile_shaders.bat to call from visual studio terminal
+:: use .\windows_compile_shaders.bat to call from visual studio terminal
 
 @echo off
 set glslc="C:\VulkanSDK\Bin\glslc.exe"
