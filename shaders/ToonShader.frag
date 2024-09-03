@@ -92,7 +92,7 @@ void main() {
   vec3 col = vec3(0.0);
 
   for (int i = 0; i < NLIGHTS; i++) {
-    if (i != 0)
+    if (gubo.type[i] != 0.0)
       col += BRDF(EyeDir, Norm, point_light_dir(fragPos, i), Albedo) *
              point_light_color(fragPos, i);
     else

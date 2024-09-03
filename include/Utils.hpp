@@ -24,7 +24,7 @@ struct MikeUniformBufferObject
 	alignas(16) glm::mat4 mvpMat[MAX_MIKE_INSTANCES];
 	alignas(16) glm::mat4 mMat[MAX_MIKE_INSTANCES];
 	alignas(16) glm::mat4 nMat[MAX_MIKE_INSTANCES];
-	alignas(4) float showDamage[MAX_MIKE_INSTANCES];
+	alignas(16) float showDamage[MAX_MIKE_INSTANCES];
 };
 
 struct ToonParUniformBufferObject
@@ -65,7 +65,7 @@ struct GlobalUniformBufferObject
 
 	struct
 	{
-		alignas(4) float t;
+		alignas(16) float t;
 	} type[NLIGHTS]; // 0 global, 1 point
 };
 
