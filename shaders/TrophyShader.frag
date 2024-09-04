@@ -17,9 +17,9 @@ layout(location = 0) out vec4 outColor;
 // binding 2) are used. Note that each definition must match the one used in the
 // CPP code
 
-layout(set = 1, binding = 1) uniform sampler2D texFirst;
-layout(set = 1, binding = 2) uniform sampler2D texSecond;
-layout(set = 1, binding = 3) uniform sampler2D texThird;
+layout(set = 0, binding = 1) uniform sampler2D texFirst;
+layout(set = 0, binding = 2) uniform sampler2D texSecond;
+layout(set = 0, binding = 3) uniform sampler2D texThird;
 
 // The main shader, implementing a simple Global + Lambert + constant Ambient
 // BRDF model The scene is lit by a single Spot Light
