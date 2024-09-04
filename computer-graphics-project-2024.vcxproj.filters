@@ -108,7 +108,4 @@
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
-  <ItemGroup>
-    <Text Include="andrea_windows_libraries_instructions.txt" />
-  </ItemGroup>
 </Project>

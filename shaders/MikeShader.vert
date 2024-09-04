@@ -1,6 +1,5 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
-#extension GL_KHR_vulkan_glsl : enable // TODO may work may not
 
 // The attributes associated with each vertex.
 // Their type and location must match the definition given in the

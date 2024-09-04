@@ -13,7 +13,7 @@ layout(location = 2) in vec2 inUV;
 layout(location = 0) out vec3 fragPos;
 layout(location = 1) out vec3 fragNorm;
 layout(location = 2) out vec2 fragUV;
-layout(location = 3) out float fragPrize;
+layout(location = 3) out flat int fragPrize;
 
 // Here the Uniform buffers are defined. In this case, the Transform matrices (Set 1, binding 0)
 // are used. Note that the definition must match the one used in the CPP code
@@ -22,7 +22,7 @@ layout(set = 0, binding = 0) uniform UniformBufferObject {
 	mat4 mvpMat;
 	mat4 mMat;
 	mat4 nMat;
-	float prize;
+	int prize;
 } ubo;
 
 // Here the shader simply computes clipping coordinates, and passes to the Fragment Shader

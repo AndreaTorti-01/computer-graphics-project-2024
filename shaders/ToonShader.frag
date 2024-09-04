@@ -28,7 +28,7 @@ gubo;
 layout(set = 1, binding = 1) uniform sampler2D texSampler;
 
 layout(set = 1, binding = 2) uniform ToonParUniformBufferObject {
-  float textureMultiplier;
+  int textureMultiplier;
 }
 tubo;
 

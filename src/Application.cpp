@@ -467,15 +467,15 @@ void Application::setScene2(uint32_t currentImage)
 	uboTrophy.mMat = glm::rotate(uboTrophy.mMat, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	uboTrophy.mvpMat = TitleViewPrj * uboTrophy.mMat;
 	uboTrophy.nMat = glm::inverse(glm::transpose(tubo.mMat));
-	uboTrophy.prize = 0.0f;
+	uboTrophy.prize = 0;
 	score = car.getScore();
 
 	if (score > 0)
-		uboTrophy.prize = 3.0f;
+		uboTrophy.prize = 3;
 	if (score > 1)
-		uboTrophy.prize = 2.0f;
+		uboTrophy.prize = 2;
 	if (score > 2)
-		uboTrophy.prize = 1.0f;
+		uboTrophy.prize = 1;
 
 	if (score > 0)
 		DSTrophy.map(currentImage, &uboTrophy, 0);

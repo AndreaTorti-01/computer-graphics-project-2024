@@ -21,7 +21,7 @@ layout(set = 0, binding = 0) uniform GlobalUniformBufferObject {
   vec3 lightPos[16];
   vec4 lightColor[16];
   vec3 eyePos;
-  float type[16];
+  int type[16];
 }
 gubo;
 

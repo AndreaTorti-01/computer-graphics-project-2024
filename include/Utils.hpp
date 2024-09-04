@@ -29,7 +29,7 @@ struct MikeUniformBufferObject
 
 struct ToonParUniformBufferObject
 {
-	alignas(4) float textureMultiplier;
+	alignas(4) int textureMultiplier;
 };
 
 struct TrophyUniformBufferObject
