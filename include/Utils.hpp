@@ -65,7 +65,7 @@ struct GlobalUniformBufferObject
 
 	struct
 	{
-		alignas(4) int t;
+		alignas(16) int t;
 	} type[NLIGHTS]; // 0 global, 1 point
 };
 

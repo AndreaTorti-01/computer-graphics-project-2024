@@ -435,14 +435,14 @@ void Application::setScene0(uint32_t currentImage)
 	uboGlobal.lightColor[0].v = glm::vec4(0.5f);
 	uboGlobal.lightPos[0].v = glm::vec3(0.0f);
 	uboGlobal.lightDir[0].v = glm::vec3(0.0f, 1.0f, 0.0f);
-	uboGlobal.type[0].t = 0.0f;
+	uboGlobal.type[0].t = 0;
 
 	for (int i = 0; i < NLIGHTS - 1; i++)
 	{
 		uboGlobal.lightDir[i + 1].v = glm::vec3(0.0f);
 		uboGlobal.lightPos[i + 1].v = glm::vec3(0.0f);
 		uboGlobal.lightColor[i + 1].v = glm::vec4(0.0f);
-		uboGlobal.type[i + 1].t = 1.0f;
+		uboGlobal.type[i + 1].t = 1;
 	}
 	DSGlobal.map(currentImage, &uboGlobal, 0);
 }
@@ -569,14 +569,14 @@ void Application::setScene1(uint32_t currentImage)
 	uboGlobal.lightPos[0].v = glm::vec3(0.0f);
 	uboGlobal.lightDir[0].v = glm::vec3(0.0f, 1.0f, 0.0f);
 	uboGlobal.lightColor[0].v = glm::vec4(0.8f);
-	uboGlobal.type[0].t = 0.0f;
+	uboGlobal.type[0].t = 0;
 
 	for (int i = 0; i < NLIGHTS - 1; i++)
 	{
 		uboGlobal.lightDir[i + 1].v = glm::vec3(0.0f, 0.0f, 0.0f);
 		uboGlobal.lightPos[i + 1].v = mikes[i].getPosition() + glm::vec3(0.0f, 1.0f, 0.0f);
 		uboGlobal.lightColor[i + 1].v = glm::vec4(0.8f);
-		uboGlobal.type[i + 1].t = 1.0f;
+		uboGlobal.type[i + 1].t = 1;
 	}
 	DSGlobal.map(currentImage, &uboGlobal, 0);
 
