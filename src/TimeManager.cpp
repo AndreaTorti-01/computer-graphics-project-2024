@@ -55,8 +55,7 @@ void TimeManager::updateTimers(Car car, std::array<Mike, MAX_MIKE_INSTANCES> &mi
 
     for (auto &mike : mikes)
     {
-        if (accelerate)
-            mike.multiplySpeed(1.2f);
+        if (accelerate) mike.multiplySpeed(1.2f);
         if (!mike.getIsAboveFloor())
         {
             mikeSpawnTimer += deltaTime;

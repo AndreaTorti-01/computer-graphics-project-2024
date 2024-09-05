@@ -37,7 +37,7 @@ Mike::Mike()
 void Mike::setDamaged(bool damaged) { isDamaged = damaged; }
 bool Mike::getDamaged() { return  isDamaged; }
 void Mike::setDamageTimer(float timer) { damageTimer = timer; }
-void Mike::multiplySpeed(float multiplier) { if(speed * multiplier <= 9.0f ) speed *= multiplier; }
+void Mike::multiplySpeed(float multiplier) { speed = glm::clamp(speed * multiplier,0.0f,7.0f); }
 void Mike::reset()
 {
 	isAboveFloor = false;
