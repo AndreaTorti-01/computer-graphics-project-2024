@@ -23,8 +23,8 @@ glm::vec3 Mike::generateRandomPosition(const glm::vec3 &carPosition)
 
 Mike::Mike()
 {
-	minRadius = 3.0f;
-	maxRadius = 7.0f;
+	minRadius = 10.0f;
+	maxRadius = 15.0f;
 	rng = std::mt19937(rd());
 	isAboveFloor = false;
 	isDamaged = false;
@@ -34,10 +34,10 @@ Mike::Mike()
 	speed = 2.0f;
 }
 
-void Mike::setDamaged(bool damaged) { this->isDamaged = damaged; }
-bool Mike::getDamaged() { return  this->isDamaged; }
+void Mike::setDamaged(bool damaged) { isDamaged = damaged; }
+bool Mike::getDamaged() { return  isDamaged; }
 void Mike::setDamageTimer(float timer) { damageTimer = timer; }
-void Mike::multiplySpeed(float multiplier) { if(speed * multiplier <= 9.0f ) speed *= multiplier; }
+void Mike::multiplySpeed(float multiplier) { speed = glm::clamp(speed * multiplier,0.0f,7.0f); }
 void Mike::reset()
 {
 	isAboveFloor = false;

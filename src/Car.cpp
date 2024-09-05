@@ -160,7 +160,7 @@ void Car::check_collisions(std::array<Mike, MAX_MIKE_INSTANCES> &mikes, std::arr
     }
     for (auto &mike : mikes)
     {
-        if (glm::distance(mike.getPosition(), position) <= 0.5)
+        if (glm::distance(mike.getPosition(), position) <= 1.0)
         {
             mike.reset();
             damage();
