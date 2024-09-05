@@ -21,14 +21,14 @@ layout(set = 0, binding = 0) uniform GlobalUniformBufferObject {
   vec3 lightPos[NLIGHTS];
   vec4 lightColor[NLIGHTS];
   vec3 eyePos;
-  float type[NLIGHTS];
+  int type[NLIGHTS];
 }
 gubo;
 
 layout(set = 1, binding = 1) uniform sampler2D texSampler;
 
 layout(set = 1, binding = 2) uniform ToonParUniformBufferObject {
-  float textureMultiplier;
+  int textureMultiplier;
 }
 tubo;
 

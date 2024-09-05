@@ -24,12 +24,12 @@ struct MikeUniformBufferObject
 	alignas(16) glm::mat4 mvpMat[MAX_MIKE_INSTANCES];
 	alignas(16) glm::mat4 mMat[MAX_MIKE_INSTANCES];
 	alignas(16) glm::mat4 nMat[MAX_MIKE_INSTANCES];
-	alignas(16) float showDamage[MAX_MIKE_INSTANCES];
+	alignas(4) int showDamage[MAX_MIKE_INSTANCES];
 };
 
 struct ToonParUniformBufferObject
 {
-	alignas(4) float textureMultiplier;
+	alignas(4) int textureMultiplier;
 };
 
 struct TrophyUniformBufferObject
@@ -37,7 +37,7 @@ struct TrophyUniformBufferObject
 	alignas(16) glm::mat4 mvpMat;
 	alignas(16) glm::mat4 mMat; // Model matrix
 	alignas(16) glm::mat4 nMat; // Normal matrix
-	alignas(4) float prize;
+	alignas(4) int prize;
 };
 
 // Uniform buffer object for skybox
@@ -65,7 +65,7 @@ struct GlobalUniformBufferObject
 
 	struct
 	{
-		alignas(16) float t;
+		alignas(4) int t;
 	} type[NLIGHTS]; // 0 global, 1 point
 };
 
