@@ -5,7 +5,7 @@
 #include <glm_with_defines.hpp>
 
 constexpr auto MAX_MIKE_INSTANCES = 15;
-constexpr auto MAX_BULLET_INSTANCES = 3;
+constexpr auto MAX_BULLET_INSTANCES = 5;
 constexpr auto MAX_UPGRADE_INSTANCES = 3;
 constexpr auto FLOOR_DIAM = 128.0f; // multiple of 2
 constexpr auto NLIGHTS = MAX_MIKE_INSTANCES + 1;
@@ -24,7 +24,9 @@ struct MikeUniformBufferObject
 	alignas(16) glm::mat4 mvpMat[MAX_MIKE_INSTANCES];
 	alignas(16) glm::mat4 mMat[MAX_MIKE_INSTANCES];
 	alignas(16) glm::mat4 nMat[MAX_MIKE_INSTANCES];
-	alignas(4) int showDamage[MAX_MIKE_INSTANCES];
+	struct {
+		alignas(16) int s;
+	} showDamage[MAX_MIKE_INSTANCES];
 };
 
 struct ToonParUniformBufferObject

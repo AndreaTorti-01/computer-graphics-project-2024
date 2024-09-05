@@ -67,7 +67,7 @@ vec3 BRDF(vec3 V, vec3 N, vec3 L, vec3 Md) {
   else Specular = Ms;
 
 
-  return (Diffuse + (tubo.textureMultiplier > 1.0 ? vec3(0) : Specular));
+  return (Diffuse + (tubo.textureMultiplier > 1.0 ? vec3(0) : Specular)); // tubo.textureMultiplier>1 is used as if it was "isFloor"
 }
 
 // The main shader, implementing a simple Global + Lambert + constant Ambient

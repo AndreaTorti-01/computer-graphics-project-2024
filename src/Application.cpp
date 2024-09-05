@@ -74,8 +74,6 @@ void Application::calculateDescriptorPoolSizes()
 // Initialization of local resources
 void Application::localInit()
 {
-	Ar = static_cast<float>(windowWidth) / static_cast<float>(windowHeight);
-
 	// Initialize Descriptor Set Layouts
 	DSLGlobal.init(this, { {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(GlobalUniformBufferObject), 1} });
 
@@ -153,7 +151,7 @@ void Application::localInit()
 	// Initialize Ubos
 	initConstantUbos();
 	// Initialize matrices
-	ViewMatrix = glm::translate(glm::mat4(1), -CamPos);
+	ViewMat = glm::translate(glm::mat4(1), -CamPos);
 	cameraType = 0;
 }
 
@@ -393,7 +391,7 @@ void Application::updateUniformBuffer(uint32_t currentImage)
 
 void Application::initConstantUbos()
 {
-	float fov = glm::radians(45.0f);
+	constexpr float fov = glm::radians(45.0f);
 	glm::mat4 M = glm::perspective(fov, Ar, 0.1f, 500.0f);
 	M[1][1] *= -1; // Flip Y-axis for Vulkan coordinate
 	TitleViewMatrix = glm::lookAt(defaultEyePos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -449,6 +447,8 @@ void Application::setScene0(uint32_t currentImage)
 
 void Application::setScene2(uint32_t currentImage)
 {
+	std::cout << "Score: " << score << std::endl;
+
 	timeManager.update();
 	float passedT = timeManager.getPassedTime();
 
@@ -534,11 +534,11 @@ void Application::setScene1(uint32_t currentImage)
 	{
 		glm::vec3 cameraPosition = car.getPosition() + cameraOffset;
 		// Look at the car
-		ViewMatrix = glm::lookAt(cameraPosition, car.getPosition(), glm::vec3(0.0f, 1.0f, 0.0f));
+		ViewMat = glm::lookAt(cameraPosition, car.getPosition(), glm::vec3(0.0f, 1.0f, 0.0f));
 	}
 	else
 	{
-		ViewMatrix =
+		ViewMat =
 			glm::rotate(glm::mat4(1.0), -glm::radians(-5.0f), glm::vec3(1, 0, 0)) *
 			glm::rotate(glm::mat4(1.0), car.getRotation() + glm::radians(-90.0f), glm::vec3(0, 1, 0)) *
 			glm::translate(glm::mat4(1.0), -car.getPosition()) *
@@ -547,16 +547,16 @@ void Application::setScene1(uint32_t currentImage)
 
 	// Projection matrix with FOV adjustment based on speed
 	float fov = glm::radians(30.0f + std::abs(car.getSpeed()) * 0.75f);
-	glm::mat4 M = glm::perspective(fov, Ar, 0.1f, 160.0f);
-	M[1][1] *= -1; // Flip Y-axis for Vulkan coordinate
+	glm::mat4 ProjectionMat = glm::perspective(fov, Ar, 0.1f, 160.0f);
+	ProjectionMat[1][1] *= -1; // Flip Y-axis for Vulkan coordinate
 
-	glm::mat4 ViewPrj = M * ViewMatrix;
+	glm::mat4 ViewPrjMat = ProjectionMat * ViewMat;
 
 	// Shake camera slightly at high speed
 	if (std::abs(car.getSpeed()) > 0.9f * MAX_SPEED)
 	{
 		float shakeAmount = 0.004f * (std::abs(car.getSpeed()) - 0.9f * MAX_SPEED) / (0.1f * MAX_SPEED);
-		ViewPrj = glm::translate(ViewPrj, glm::vec3(
+		ViewPrjMat = glm::translate(ViewPrjMat, glm::vec3(
 			0.0f,
 			shakeAmount * (std::sin(deltaT * 50.0f) + std::cos(deltaT * 47.0f)),
 			shakeAmount * (std::cos(deltaT * 53.0f) + std::sin(deltaT * 59.0f))));
@@ -564,11 +564,11 @@ void Application::setScene1(uint32_t currentImage)
 
 	// Update global uniforms
 	GlobalUniformBufferObject uboGlobal{};
-	uboGlobal.eyePos = glm::vec3(glm::inverse(ViewMatrix) * glm::vec4(0, 0, 0, 1));
+	uboGlobal.eyePos = glm::vec3(glm::inverse(ViewMat) * glm::vec4(0, 0, 0, 1));
 
 	uboGlobal.lightPos[0].v = glm::vec3(0.0f);
 	uboGlobal.lightDir[0].v = glm::vec3(0.0f, 1.0f, 0.0f);
-	uboGlobal.lightColor[0].v = glm::vec4(0.8f);
+	uboGlobal.lightColor[0].v = glm::vec4(0.1f * car.getHealth());
 	uboGlobal.type[0].t = 0;
 
 	for (int i = 0; i < NLIGHTS - 1; i++)
@@ -584,9 +584,9 @@ void Application::setScene1(uint32_t currentImage)
 	ToonUniformBufferObject uboCar{};
 	ToonParUniformBufferObject uboToonParC{};
 	uboToonParC.textureMultiplier = 1.0f;
-	uboCar.mMat = car.getPosition4();
-	uboCar.mvpMat = ViewPrj * uboCar.mMat;
-	uboCar.nMat = glm::inverse(uboCar.mMat);
+	uboCar.mMat = car.getPosition4(); // local transform ("model" matrix) - matrix is ready in car object
+	uboCar.mvpMat = ViewPrjMat * uboCar.mMat; // model-view-projection matrix
+	uboCar.nMat = glm::inverse(uboCar.mMat); // normal matrix
 	DSCar.map(currentImage, &uboCar, 0);
 	DSCar.map(currentImage, &uboToonParC, 2);
 
@@ -595,12 +595,12 @@ void Application::setScene1(uint32_t currentImage)
 	for (int i = 0; i < mikes.size(); i++)
 	{
 		glm::mat4 rotationMat = glm::rotate(glm::mat4(1.0f), mikes[i].getRotation(), glm::vec3(0.0f, 1.0f, 0.0f));
-		uboMike.mMat[i] = glm::translate(glm::mat4(1.0f), mikes[i].getPosition()) * rotationMat;
+		uboMike.mMat[i] = glm::translate(glm::mat4(1.0f), mikes[i].getPosition()) * rotationMat; // 2nd case: matrix is created here
 		uboMike.mMat[i] = glm::scale(uboMike.mMat[i], glm::vec3(0.5f));
-		uboMike.mvpMat[i] = ViewPrj * uboMike.mMat[i];
+		uboMike.mvpMat[i] = ViewPrjMat * uboMike.mMat[i];
 		uboMike.nMat[i] = glm::inverse(glm::transpose(uboMike.mMat[i]));
-		uboMike.showDamage[i] = 0.0f;
-		//if (mikes[i].getDamaged()) uboMike.showDamage[i] = 1.0f;
+		// uboMike.showDamage[i] = 0;
+		uboMike.showDamage[i].s = mikes[i].getDamaged() ? 1 : 0;
 	}
 	DSMikes.map(currentImage, &uboMike, 0);
 
@@ -612,7 +612,7 @@ void Application::setScene1(uint32_t currentImage)
 		uboToonPar.textureMultiplier = 1.0f;
 		glm::mat4 rotationMat = glm::rotate(glm::mat4(1.0f), car.getBullets()[i].getRotation(), glm::vec3(0.0f, 1.0f, 0.0f));
 		uboBullet.mMat = glm::translate(glm::mat4(1.0f), car.getBullets()[i].getPosition()) * rotationMat;
-		uboBullet.mvpMat = ViewPrj * uboBullet.mMat;
+		uboBullet.mvpMat = ViewPrjMat * uboBullet.mMat;
 		uboBullet.nMat = glm::inverse(glm::transpose(uboBullet.mMat));
 		DSBullets[i].map(currentImage, &uboBullet, 0);
 		DSBullets[i].map(currentImage, &uboToonPar, 2);
@@ -625,7 +625,7 @@ void Application::setScene1(uint32_t currentImage)
 		ToonParUniformBufferObject uboToonParU{};
 		uboToonParU.textureMultiplier = 1.0f;
 		uboUpgrade.mMat = upgrades[i].getPosition4();
-		uboUpgrade.mvpMat = ViewPrj * uboUpgrade.mMat;
+		uboUpgrade.mvpMat = ViewPrjMat * uboUpgrade.mMat;
 		uboUpgrade.nMat = glm::inverse(glm::transpose(uboUpgrade.mMat));
 		DSUpgrades[i].map(currentImage, &uboUpgrade, 0);
 		DSUpgrades[i].map(currentImage, &uboToonParU, 2);
@@ -636,7 +636,7 @@ void Application::setScene1(uint32_t currentImage)
 	ToonParUniformBufferObject uboToonParF{};
 	uboToonParF.textureMultiplier = FLOOR_DIAM / 32.0;
 	uboFloor.mMat = glm::mat4(1.0f);
-	uboFloor.mvpMat = ViewPrj * uboFloor.mMat;
+	uboFloor.mvpMat = ViewPrjMat * uboFloor.mMat;
 	uboFloor.nMat = glm::transpose(glm::inverse(uboFloor.mMat));
 
 	DSFloor.map(currentImage, &uboFloor, 0);
@@ -647,7 +647,7 @@ void Application::setScene1(uint32_t currentImage)
 	ToonParUniformBufferObject uboToonParG{};
 	uboToonParG.textureMultiplier = FLOOR_DIAM / 4.0; // Adjust this to control texture tiling
 	uboGrass.mMat = glm::mat4(1.0f);
-	uboGrass.mvpMat = ViewPrj * uboGrass.mMat;
+	uboGrass.mvpMat = ViewPrjMat * uboGrass.mMat;
 	uboGrass.nMat = glm::transpose(glm::inverse(uboGrass.mMat));
 
 	DSGrass.map(currentImage, &uboGrass, 0);
@@ -658,7 +658,7 @@ void Application::setScene1(uint32_t currentImage)
 	ToonParUniformBufferObject uboToonParFe{};
 	uboToonParFe.textureMultiplier = FLOOR_DIAM / 32.0f;
 	uboFence.mMat = glm::mat4(1.0f);
-	uboFence.mvpMat = ViewPrj * uboFence.mMat;
+	uboFence.mvpMat = ViewPrjMat * uboFence.mMat;
 	uboFence.nMat = glm::transpose(glm::inverse(uboFence.mMat));
 
 	DSFence.map(currentImage, &uboFence, 0);
@@ -666,14 +666,6 @@ void Application::setScene1(uint32_t currentImage)
 
 	// Update Skybox uniforms
 	SkyBoxUniformBufferObject uboSky{};
-	uboSky.mvpMat = M * glm::mat4(glm::mat3(ViewMatrix)); // Remove translation from view matrix
+	uboSky.mvpMat = ProjectionMat * glm::mat4(glm::mat3(ViewMat)); // Remove translation from view matrix
 	DSSkyBox.map(currentImage, &uboSky, 0);
-
-	// update text to show number of lives left
-	std::string text2 = "Lives: " + std::to_string(car.getHealth()) + " Score: " + std::to_string(car.getScore());
-	outText = {
-	{1, {"Press SPACE to start", "", "", ""}, 0, 0},
-	{2, {text2.c_str(), "", "", ""}, 0, 0},
-	{3, {"press ESC to close", "", "", ""}, 0, 0} };
-	// TODO fix does not update
 }

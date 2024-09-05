@@ -48,7 +48,7 @@ protected:
 	float CamAlpha = 0.0f;
 	float CamBeta = 0.0f;
 	float Ar; // Aspect ratio
-	glm::mat4 ViewMatrix;
+	glm::mat4 ViewMat;
 	glm::mat4 TitleViewPrj;
 	const glm::vec3 defaultEyePos = glm::vec3(0.0f, 15.0f, 5.0f); // scene 0 and 2
 	glm::mat4 TitleViewMatrix;
